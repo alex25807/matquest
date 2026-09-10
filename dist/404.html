@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>МатКвест - 404</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0a0a2e 0%, #1a0a3e 50%, #0a0a1e 100%);
+      font-family: 'Arial', sans-serif;
+      color: #fff;
+      text-align: center;
+    }
+    .container {
+      padding: 40px;
+    }
+    h1 {
+      font-size: 72px;
+      margin: 0;
+      color: #00f3ff;
+      text-shadow: 0 0 10px #00f3ff, 0 0 20px #00f3ff;
+    }
+    p {
+      font-size: 24px;
+      margin: 20px 0;
+    }
+    a {
+      display: inline-block;
+      padding: 15px 30px;
+      background: rgba(0, 243, 255, 0.1);
+      border: 2px solid #00f3ff;
+      color: #00f3ff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 18px;
+      margin-top: 20px;
+      transition: all 0.3s;
+    }
+    a:hover {
+      background: rgba(0, 243, 255, 0.3);
+      box-shadow: 0 0 15px #00f3ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>404</h1>
+    <p>Страница не найдена</p>
+    <a href="/matquest/">Вернуться на главную</a>
+  </div>
+  <script>
+    // Перенаправляем на главную для SPA-маршрутизации
+    const path = window.location.pathname;
+    if (path !== '/matquest/' && path !== '/matquest') {
+      sessionStorage.redirect = path;
+    }
+    window.location.replace('/matquest/');
+  </script>
+</body>
+</html>
