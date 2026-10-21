@@ -12,34 +12,31 @@ export function generateDivisionQuestion(tier: Tier): Question {
 
   switch (tier) {
     case 1: {
-      // ТИР 1: Разведка (Устный счет, табличное деление на двузначное)
-      // Пример: 96 : 24, 80 : 16
+      // ТИР 1: Устный счет (табличное деление на двузначное)
       const divisor = random(11, 25);
       const quotient = random(2, 9);
       const dividend = divisor * quotient;
       
       text = `Вычисли: ${dividend} : ${divisor}`;
       answer = quotient;
-      hint = `Вспомни, как связан умножение и деление. Какое число нужно умножить на ${divisor}, чтобы получить ${dividend}?`;
+      hint = `Вспомни, как связаны умножение и деление. Какое число нужно умножить на ${divisor}, чтобы получить ${dividend}?`;
       break;
     }
     
     case 2: {
-      // ТИР 2: Инженер (Письменное деление столбиком без остатка)
-      // Пример: 832 : 32
+      // ТИР 2: Письменное деление столбиком без остатка
       const divisor = random(12, 45);
       const quotient = random(11, 99);
       const dividend = divisor * quotient;
       
       text = `Реши пример столбиком: ${dividend} : ${divisor}`;
       answer = quotient;
-      hint = `1. Найди первое неполное делимое.\n2. Определи количество цифр в частном.\n3. Подбери пробную цифру, разделив делимое на круглое число (например, 832 : 30).`;
+      hint = `1. Найди первое неполное делимое.\n2. Определи количество цифр в частном.\n3. Подбери пробную цифру, разделив делимое на круглое число.`;
       break;
     }
 
     case 3: {
-      // ТИР 3: Мастер (Текстовая задача в 1-2 действия)
-      // База: стр. 60, № 206 (про ткань/массу)
+      // ТИР 3: Текстовая задача в 1 действие
       const totalWeight = random(100, 500);
       const bagsCount = random(5, 15);
       const weightPerBag = Math.floor(totalWeight / bagsCount);
@@ -52,8 +49,7 @@ export function generateDivisionQuestion(tier: Tier): Question {
     }
 
     case 4: {
-      // ТИР 4: Легенда (Задача с недостающими данными или логикой)
-      // База: стр. 63, № 227 (про теплоход) или задачи на сравнение
+      // ТИР 4: Задача на движение (в 2 действия)
       const distance1 = random(100, 300);
       const days1 = random(2, 5);
       const speed = Math.floor(distance1 / days1);
