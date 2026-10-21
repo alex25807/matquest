@@ -1,4 +1,4 @@
-﻿// src/hooks/useAdaptiveLogic.ts
+// src/hooks/useAdaptiveLogic.ts
 import { Tier, TopicId, StudentProfile } from '../types';
 
 export function updateStudentProfile(
@@ -13,11 +13,10 @@ export function updateStudentProfile(
     newProfile.streak += 1;
     newProfile.mistakes = 0;
 
-    // Повышаем уровень, если 3 правильных ответа подряд
+    // Повышаем уровень (тир), если 3 правильных ответа подряд
     if (newProfile.streak >= 3 && currentTier < 4) {
       newProfile.currentTier[topic] = (currentTier + 1) as Tier;
       newProfile.streak = 0; // Сбрасываем серию после повышения
-      // TODO: Здесь можно вызвать событие "Получена ачивка / Открыт новый мир!"
     }
   } else {
     newProfile.mistakes += 1;
@@ -29,11 +28,11 @@ export function updateStudentProfile(
       newProfile.mistakes = 0;
     }
     
-    // Добавляем тему в список слабых, если была ошибка
+    // Добавляем тему в список слабых мест для повторения
     if (!newProfile.weakTopics.includes(topic)) {
       newProfile.weakTopics.push(topic);
     }
   }
 
   return newProfile;
-}
+}﻿
