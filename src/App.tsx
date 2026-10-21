@@ -4,7 +4,7 @@ import { loadData, saveProfile, createProfile, saveTestResult } from './store';
 import StartScreen from './components/StartScreen';
 import SettingsScreen from './components/SettingsScreen';
 import TestScreen from './components/TestScreen';
-import QuestScreen from './components/QuestScreen';
+import {QuestScreen} from './components/QuestScreen';
 import ResultsScreen from './components/ResultsScreen';
 import NewGameScreen from './components/NewGameScreen';
 
