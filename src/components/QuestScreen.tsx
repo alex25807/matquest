@@ -25,7 +25,7 @@ export const QuestScreen: React.FC<QuestScreenProps> = ({
 }) => {
   const topic = 'division_2digit'; 
   
-  // 🔒 БЕЗОПАСНОЕ ПОЛУЧЕНИЕ ДАННЫХ (используем ?.)
+  // 🔒 Безопасное получение данных (используем ?.)
   const currentTier = profile.currentTier?.[topic] || 1;
   const streak = profile.streak ?? 0;
   const mistakes = profile.mistakes ?? 0;
@@ -91,7 +91,7 @@ export const QuestScreen: React.FC<QuestScreenProps> = ({
             <span className="font-orbitron text-lg neon-text-pink font-bold">
               {TIER_NAMES[currentTier]}
             </span>
-          </div
+          </div> {/* <-- Здесь была пропущена скобка > */}
         </div>
 
         {/* Прогресс-бар серии */}
