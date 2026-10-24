@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StudentProfile, Theme } from '../types';
 import { generateDivisionQuestion } from '../data/generators/division';
 import { updateStudentProfile } from '../hooks/useAdaptiveLogic';
@@ -23,9 +23,12 @@ export const QuestScreen: React.FC<QuestScreenProps> = ({
   onBack, 
   theme 
 }) => {
-  // Пока используем тему деления как основную для теста. Позже сделаем выбор темы.
   const topic = 'division_2digit'; 
-  const currentTier = profile.currentTier[topic] || 1;
+  
+  // 🔒 БЕЗОПАСНОЕ ПОЛУЧЕНИЕ ДАННЫХ (используем ?.)
+  const currentTier = profile.currentTier?.[topic] || 1;
+  const streak = profile.streak ?? 0;
+  const mistakes = profile.mistakes ?? 0;
 
   const [question, setQuestion] = useState<any>(null);
   const [userAnswer, setUserAnswer] = useState<string>('');
@@ -80,10 +83,7 @@ export const QuestScreen: React.FC<QuestScreenProps> = ({
         
         {/* Шапка */}
         <div className="flex justify-between items-center mb-6">
-          <button
-            onClick={onBack}
-            className="neon-btn text-sm px-4 py-2"
-          >
+          <button onClick={onBack} className="neon-btn text-sm px-4 py-2">
             ← Выйти в меню
           </button>
           
@@ -91,7 +91,7 @@ export const QuestScreen: React.FC<QuestScreenProps> = ({
             <span className="font-orbitron text-lg neon-text-pink font-bold">
               {TIER_NAMES[currentTier]}
             </span>
-          </div>
+          </div
         </div>
 
         {/* Прогресс-бар серии */}
@@ -101,10 +101,10 @@ export const QuestScreen: React.FC<QuestScreenProps> = ({
             <div className="flex-1 h-3 bg-slate-800 rounded-full overflow-hidden border border-white/10">
               <div
                 className="h-full bg-gradient-to-r from-orange-400 to-red-500 transition-all duration-700 ease-out"
-                style={{ width: `${Math.min((profile.streak / 3) * 100, 100)}%` }}
+                style={{ width: `${Math.min((streak / 3) * 100, 100)}%` }}
               />
             </div>
-            <span className="text-orange-400 font-orbitron font-bold">{profile.streak}/3</span>
+            <span className="text-orange-400 font-orbitron font-bold">{streak}/3</span>
           </div>
         </div>
 
@@ -179,7 +179,7 @@ export const QuestScreen: React.FC<QuestScreenProps> = ({
               <p className="text-green-300 text-xl font-orbitron font-bold">
                 🎉 ОТЛИЧНО! Ответ: {question.answer}
               </p>
-              {profile.streak >= 3 && (
+              {streak >= 3 && (
                 <p className="text-yellow-300 text-sm mt-2 font-nunito animate-pulse">
                   ⭐ Уровень повышен! Ты готов к новым вызовам!
                 </p>
@@ -216,7 +216,7 @@ export const QuestScreen: React.FC<QuestScreenProps> = ({
           </div>
           <div className="neon-border-pink rounded-xl p-3 text-center bg-black/40">
             <div className="text-white/60 text-xs uppercase font-orbitron">Ошибки</div>
-            <div className="text-red-400 text-2xl font-bold font-nunito">{profile.mistakes}</div>
+            <div className="text-red-400 text-2xl font-bold font-nunito">{mistakes}</div>
           </div>
           <div className="neon-border-green rounded-xl p-3 text-center bg-black/40">
             <div className="text-white/60 text-xs uppercase font-orbitron">Тема</div>
