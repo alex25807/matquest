@@ -6,15 +6,19 @@ export function nextSequentialPair(state?: TableDrillState | null): {
   b: number;
   state: TableDrillState;
 } {
-  if (!state) {
-    const factor = random(2, 9);
-    return { a: factor, b: 1, state: { factor, nextN: 2 } };
+  const start: TableDrillState =
+    !state || state.nextN < 2 || state.factor < 2
+      ? { factor: state && state.factor >= 2 ? state.factor : random(2, 9), nextN: 2 }
+      : state;
+  if (start.nextN > 9) {
+    const factor = start.factor >= 9 ? 2 : start.factor + 1;
+    return { a: factor, b: 2, state: { factor, nextN: 3 } };
   }
-  if (state.nextN > 10) {
-    const factor = state.factor >= 9 ? 2 : state.factor + 1;
-    return { a: factor, b: 1, state: { factor, nextN: 2 } };
-  }
-  return { a: state.factor, b: state.nextN, state: { factor: state.factor, nextN: state.nextN + 1 } };
+  return {
+    a: start.factor,
+    b: start.nextN,
+    state: { factor: start.factor, nextN: start.nextN + 1 },
+  };
 }
 
 export function generateMultiplicationQuestion(
@@ -52,7 +56,7 @@ export function generateMultiplicationQuestion(
     2: [
       () => {
         const a = random(2, 9);
-        const b = random(2, 9);
+        const b = random(6, 9);
         const product = a * b;
         return {
           templateId: 'table_mixed',
@@ -87,7 +91,7 @@ export function generateMultiplicationQuestion(
     3: [
       () => {
         const a = random(2, 9);
-        const b = random(2, 9);
+        const b = random(6, 9);
         const product = a * b;
         return {
           templateId: 'table_divide',
@@ -103,7 +107,7 @@ export function generateMultiplicationQuestion(
         };
       },
       () => {
-        const a = random(2, 9);
+        const a = random(6, 9);
         const b = random(2, 9);
         const product = a * b;
         return {

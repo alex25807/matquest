@@ -29,8 +29,8 @@ export function generateAreaQuestion(
 
   const tier2: TemplateFn[] = [
     () => {
-      const a = random(4, 14);
-      const b = random(3, 12);
+      const a = random(12, 28);
+      const b = random(8, 19);
       return {
         templateId: 'rect_p',
         text: `Прямоугольник ${a} м × ${b} м. Периметр (м)?`,
@@ -44,7 +44,7 @@ export function generateAreaQuestion(
       };
     },
     () => {
-      const a = random(4, 12);
+      const a = random(12, 25);
       return {
         templateId: 'square_s',
         text: `Квадрат со стороной ${a} см. Площадь (см²)?`,

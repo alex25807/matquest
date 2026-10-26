@@ -46,6 +46,9 @@ export function withMeta(
     ...draft,
     hints,
     hint: hints[0],
+    method:
+      draft.method ||
+      'Запиши, что известно и что нужно найти. Выбери действие и проверь ответ обратным действием.',
   };
 }
 

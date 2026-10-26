@@ -43,6 +43,9 @@ export default function QuestScreen({
   const [roundCorrect, setRoundCorrect] = useState(0);
   const [roundDone, setRoundDone] = useState(false);
   const [usedSecondTry, setUsedSecondTry] = useState(false);
+  const [helpStep, setHelpStep] = useState(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [showMethod, setShowMethod] = useState(false);
 
   const lastTemplateId = useRef<string | null>(null);
   const lastTopic = useRef<TopicId | null>(null);
@@ -54,15 +57,22 @@ export default function QuestScreen({
     const p = profileRef.current;
     const topic = pickNextTopic(p, lastTopic.current, index, focus);
     const tier = getTopicTier(p, topic);
+    const seqIn = sequentialRef.current ?? profileRef.current.tableDrill ?? null;
     const { question: next, sequential } = generateQuestionForTopic(
       topic,
       tier,
       theme,
       lastTemplateId.current,
-      sequentialRef.current
+      seqIn
     );
     sequentialRef.current = sequential;
     lastTemplateId.current = next.templateId;
+    if (sequential) {
+      const prev = profileRef.current.tableDrill;
+      if (!prev || prev.factor !== sequential.factor || prev.nextN !== sequential.nextN) {
+        onUpdateProfile({ ...profileRef.current, tableDrill: sequential });
+      }
+    }
     lastTopic.current = next.topic;
     setQuestion(next);
     setUserAnswer('');
@@ -71,6 +81,9 @@ export default function QuestScreen({
     setHintIndex(0);
     setTierJustUp(false);
     setUsedSecondTry(false);
+    setHelpStep(0);
+    setShowAnswer(false);
+    setShowMethod(false);
   };
 
   useEffect(() => {
@@ -92,33 +105,28 @@ export default function QuestScreen({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!question || (status !== 'idle' && status !== 'retry')) return;
+    if (!question || status === 'correct' || showAnswer) return;
 
     const numericAnswer = parseFloat(userAnswer.replace(',', '.'));
     const isCorrect = numericAnswer === question.answer;
 
     if (isCorrect) {
-      finishAnswer(true, status === 'retry' || usedSecondTry);
+      finishAnswer(true, helpStep > 0);
       return;
     }
 
-    if (status === 'idle') {
-      const nextHint = Math.min(hintIndex + 1, Math.max(question.hints.length, 1));
-      setUsedSecondTry(true);
-      setStatus('retry');
-      setShowHint(true);
-      setHintIndex(nextHint);
-      setUserAnswer('');
-      return;
-    }
-
-    finishAnswer(false, true);
+    setStatus('retry');
+    setUserAnswer('');
   };
 
-  const revealHint = () => {
-    if (!question) return;
-    setShowHint(true);
-    setHintIndex((i) => Math.min(i + 1, question.hints.length));
+  const askHelp = () => {
+    setHelpStep((step) => Math.min(step + 1, 3));
+  };
+
+  const revealAnswer = () => {
+    if (!question || showAnswer || status === 'correct') return;
+    setShowAnswer(true);
+    finishAnswer(false, true);
   };
 
   const handleNext = () => {
@@ -134,7 +142,7 @@ export default function QuestScreen({
   const topic = question?.topic;
   const currentTier = topic ? getTopicTier(profile, topic) : 1;
   const topicStreak = topic ? profile.topicStreak?.[topic] ?? 0 : 0;
-  const visibleHints = question?.hints.slice(0, Math.max(hintIndex, showHint ? 1 : 0)) ?? [];
+  const visibleHints = question ? question.hints.slice(0, Math.min(helpStep, 2)) : [];
 
   if (roundDone) {
     return (
@@ -162,7 +170,7 @@ export default function QuestScreen({
     );
   }
 
-  const locked = status === 'correct' || status === 'wrong';
+  const locked = status === 'correct' || status === 'wrong' || showAnswer;
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 theme-${theme} relative`}>
@@ -227,20 +235,35 @@ export default function QuestScreen({
               autoFocus
             />
 
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3">
               {!locked && (
-                <>
-                  <button
-                    type="submit"
-                    disabled={!userAnswer}
-                    className="neon-btn-green flex-1 py-4 text-lg font-bold disabled:opacity-50"
-                  >
-                    Проверить
-                  </button>
-                  <button type="button" onClick={revealHint} className="neon-btn flex-1 py-4 text-lg">
-                    Наводящий вопрос
-                  </button>
-                </>
+                <button
+                  type="submit"
+                  disabled={!userAnswer}
+                  className="neon-btn-green w-full py-4 text-lg font-bold disabled:opacity-50"
+                >
+                  Проверить
+                </button>
+              )}
+              {!locked && helpStep < 1 && (
+                <button type="button" onClick={askHelp} className="neon-btn w-full py-3">
+                  Наводящий вопрос
+                </button>
+              )}
+              {!locked && helpStep === 1 && (
+                <button type="button" onClick={askHelp} className="neon-btn w-full py-3">
+                  Подсказка
+                </button>
+              )}
+              {!locked && helpStep === 2 && (
+                <button type="button" onClick={askHelp} className="neon-btn w-full py-3">
+                  Объясни материал
+                </button>
+              )}
+              {!locked && helpStep >= 3 && (
+                <button type="button" onClick={revealAnswer} className="neon-btn-pink w-full py-3">
+                  Покажи ответ
+                </button>
               )}
               {locked && (
                 <button type="button" onClick={handleNext} className="neon-btn-pink w-full py-4 text-lg font-bold">
@@ -250,50 +273,48 @@ export default function QuestScreen({
             </div>
           </form>
 
-          {showHint && visibleHints.length > 0 && !locked && (
+          {visibleHints.length > 0 && !showAnswer && (
             <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-400/50 rounded-xl text-left">
               {visibleHints.map((h, i) => (
                 <p key={i} className="text-yellow-200 font-nunito text-sm md:text-base mb-2 last:mb-0">
-                  <span className="font-bold">Вопрос {i + 1}:</span> {h}
+                  <span className="font-bold">{i === 0 ? 'Вопрос' : 'Приём'}:</span> {h}
                 </p>
               ))}
             </div>
           )}
 
-          {status === 'retry' && (
+          {helpStep >= 3 && !showAnswer && status !== 'correct' && (
+            <div className="mt-4 p-4 bg-blue-500/10 border border-blue-400/40 rounded-xl text-left">
+              <p className="text-blue-100 font-nunito text-sm whitespace-pre-line">{question.method}</p>
+            </div>
+          )}
+
+          {status === 'retry' && !showAnswer && (
             <p className="mt-4 text-orange-200 font-nunito text-sm">
-              Почти! Не сдаём готовый ответ — у тебя вторая попытка.
+              Пока не то. Можно спросить следующий шаг или попробовать ещё раз.
             </p>
           )}
 
           {status === 'correct' && (
             <div className="mt-6 p-4 bg-green-500/20 border border-green-400 rounded-xl text-left">
-              <p className="text-green-300 text-xl font-nunito font-bold mb-2">
-                Отлично! {question.answer}
-              </p>
-              <p className="text-white/80 font-nunito text-sm whitespace-pre-line">{question.explanation}</p>
-              {question.alternativeSolutions?.[0] && (
-                <p className="text-green-200/80 font-nunito text-sm mt-2">
-                  Другой ход: {question.alternativeSolutions[0]}
-                </p>
+              <p className="text-green-300 text-xl font-nunito font-bold mb-2">Верно.</p>
+              {showMethod ? (
+                <p className="text-white/80 font-nunito text-sm whitespace-pre-line">{question.explanation}</p>
+              ) : (
+                <button type="button" onClick={() => setShowMethod(true)} className="text-yellow-200 text-sm underline">
+                  Как это решается
+                </button>
               )}
               {tierJustUp && (
-                <p className="text-yellow-300 text-sm mt-2 font-nunito">
-                  Тема стала сложнее: новые типы задач.
-                </p>
+                <p className="text-yellow-300 text-sm mt-2 font-nunito">Тема стала сложнее: новые типы задач.</p>
               )}
             </div>
           )}
 
-          {status === 'wrong' && (
+          {showAnswer && status !== 'correct' && (
             <div className="mt-6 p-4 bg-red-500/20 border border-red-400 rounded-xl text-left">
-              <p className="text-red-300 text-xl font-nunito font-bold mb-2">
-                Верный ответ: {question.answer}
-              </p>
+              <p className="text-red-200 text-xl font-nunito font-bold mb-2">Ответ: {question.answer}</p>
               <p className="text-white/80 font-nunito text-sm whitespace-pre-line">{question.explanation}</p>
-              <p className="text-white/60 text-sm mt-2 font-nunito">
-                Ошибка — это карта пути. Следующая задача будет чуть другого вида.
-              </p>
             </div>
           )}
         </div>

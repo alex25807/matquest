@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Theme, StudentProfile, QuestFocus } from './types';
 import { loadData, saveProfile, createProfile, saveTestResult } from './store';
+import { tiersFromTest } from './data/progress';
 import StartScreen from './components/StartScreen';
 import SettingsScreen from './components/SettingsScreen';
 import TestScreen from './components/TestScreen';
@@ -46,7 +47,7 @@ export default function App() {
 
   const handleTestComplete = (score: number, total: number, level: number) => {
     if (profile) {
-      const updated = { ...profile, level };
+      const updated = tiersFromTest({ ...profile, level }, score, total);
       setProfile(updated);
       saveProfile(updated);
       

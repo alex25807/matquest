@@ -19,6 +19,7 @@ export default function TestScreen({ profile, onComplete, theme }: TestScreenPro
   const [selected, setSelected] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [showFact, setShowFact] = useState(false);
+  const [showExplain, setShowExplain] = useState(false);
   const [streak, setStreak] = useState(0);
   const [testQuestions_shuffled, setTestQuestions_shuffled] = useState<Question[]>([]);
   const { speak } = useSpeech();
@@ -27,18 +28,21 @@ export default function TestScreen({ profile, onComplete, theme }: TestScreenPro
 
   useEffect(() => {
     // Выбираем вопросы для теста - микс уровней
-    let allQuestions = [...testQuestions];
-    
-    // Если продвинутый режим, добавляем графические и продвинутые вопросы
+    const minLevel = profile.difficultyMode === 'advanced' ? 4 : profile.grade >= 4 ? 3 : 1;
+    let allQuestions = testQuestions.filter((q) => q.level >= minLevel);
+    if (allQuestions.length < totalQuestions) {
+      allQuestions = testQuestions.filter((q) => q.level >= Math.max(1, minLevel - 1));
+    }
     if (profile.difficultyMode === 'advanced') {
-      allQuestions = [...allQuestions, ...figureQuestions.slice(0, 4), ...advancedQuestions.slice(0, 3)];
+      const figures = figureQuestions.filter((q) => q.level >= 4 && q.figure !== 'composite');
+      allQuestions = [...allQuestions, ...figures, ...advancedQuestions];
     }
     
     const shuffled = allQuestions.sort(() => Math.random() - 0.5);
     setTestQuestions_shuffled(shuffled.slice(0, totalQuestions));
     const modeText = profile.difficultyMode === 'advanced' ? ' (продвинутый режим!)' : '';
     speak(`Давай определим твой уровень${modeText}! Отвечай на вопросы, не торопись. Ты справишься!`);
-  }, [speak, profile.difficultyMode]);
+  }, [speak, profile.difficultyMode, profile.grade]);
 
   const question = testQuestions_shuffled[currentQ];
 
@@ -76,6 +80,7 @@ export default function TestScreen({ profile, onComplete, theme }: TestScreenPro
     setSelected(null);
     setShowResult(false);
     setShowFact(false);
+    setShowExplain(false);
 
     if (currentQ + 1 >= totalQuestions) {
       // Определяем уровень
@@ -189,9 +194,17 @@ export default function TestScreen({ profile, onComplete, theme }: TestScreenPro
               <p className="text-white font-nunito font-bold mb-1">
                 {selected === question.correct ? '✅ Правильно!' : '❌ Не совсем...'}
               </p>
-              <p className="text-white/80 text-sm">
-                💡 {question.explanation}
-              </p>
+              {showExplain ? (
+                <p className="text-white/80 text-sm">{question.explanation}</p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowExplain(true)}
+                  className="text-yellow-200 text-sm underline"
+                >
+                  Объясни материал
+                </button>
+              )}
             </div>
 
             {/* Умные подсказки и альтернативные решения */}

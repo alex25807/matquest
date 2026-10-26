@@ -3,6 +3,7 @@ import { Theme, StudentProfile, DifficultyMode } from '../types';
 import { achievements } from '../data/motivation';
 import { useSpeech } from '../hooks/useSpeech';
 import { saveProfile } from '../store';
+import { clampProfile } from '../data/progress';
 
 interface ResultsScreenProps {
   profile: StudentProfile;
@@ -32,7 +33,7 @@ export default function ResultsScreen({ profile, onBack, onStartQuest, onStartTa
 
   const handleToggleMode = () => {
     const newMode: DifficultyMode = profile.difficultyMode === 'normal' ? 'advanced' : 'normal';
-    const updated = { ...profile, difficultyMode: newMode };
+    const updated = clampProfile({ ...profile, difficultyMode: newMode });
     onUpdateProfile(updated);
     saveProfile(updated);
     if (newMode === 'advanced') {

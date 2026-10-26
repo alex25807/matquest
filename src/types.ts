@@ -40,6 +40,8 @@ export interface StudentProfile {
   topicStreak?: Partial<Record<TopicId, number>>;
   topicMistakes?: Partial<Record<TopicId, number>>;
   weakTopics?: TopicId[];
+  topicCorrect?: Partial<Record<TopicId, number>>;
+  tableDrill?: TableDrillState;
   /** @deprecated use topicStreak */
   tierStreak?: number;
   /** @deprecated use topicMistakes */
@@ -71,6 +73,7 @@ export interface AdaptiveQuestion {
   answer: number;
   hint: string;
   hints: string[];
+  method?: string;
   explanation: string;
   alternativeSolutions?: string[];
   templateId: string;

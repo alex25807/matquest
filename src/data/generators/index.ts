@@ -14,6 +14,7 @@ import { generateFractionsQuestion } from './fractions';
 import { generateMotionQuestion } from './motion';
 import { generateMultiplicationQuestion } from './multiplication';
 import { random } from './common';
+import { floorTier } from '../progress';
 
 export const TOPIC_LABELS: Record<TopicId, string> = {
   multiplication_table: 'Таблица ×',
@@ -31,7 +32,8 @@ export const TIER_NAMES: Record<Tier, string> = {
 };
 
 export function getTopicTier(profile: StudentProfile, topic: TopicId): Tier {
-  return (profile.currentTier?.[topic] || 1) as Tier;
+  const floor = floorTier(profile);
+  return Math.max(floor, profile.currentTier?.[topic] || floor) as Tier;
 }
 
 export function pickNextTopic(

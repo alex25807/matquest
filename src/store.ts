@@ -1,4 +1,5 @@
 import { StudentProfile, TestResult, Theme } from './types';
+import { clampProfile } from './data/progress';
 
 const STORAGE_KEY = 'matquest_data';
 
@@ -10,7 +11,11 @@ interface StoredData {
 export function loadData(): StoredData {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw) as StoredData;
+      if (parsed.profile) parsed.profile = clampProfile(parsed.profile);
+      return parsed;
+    }
   } catch (e) {
     console.error('Failed to load data:', e);
   }
@@ -31,7 +36,7 @@ export function saveTestResult(result: TestResult): void {
 
 export function createProfile(name: string, age: number, theme: Theme): StudentProfile {
   const grade = age <= 9 ? 3 : age <= 10 ? 4 : 5;
-  return {
+  const draft: StudentProfile = {
     name,
     age,
     grade,
@@ -55,7 +60,9 @@ export function createProfile(name: string, age: number, theme: Theme): StudentP
     topicStreak: {},
     topicMistakes: {},
     weakTopics: [],
+    topicCorrect: {},
   };
+  return clampProfile(draft);
 }
 
 export function addXP(profile: StudentProfile, amount: number): StudentProfile {

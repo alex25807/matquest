@@ -1,18 +1,20 @@
 ﻿import { ALL_TOPICS, StudentProfile, TopicId, Tier } from '../types';
 import { addXP } from '../store';
+import { clampProfile, floorTier } from '../data/progress';
 
 const emptyTiers = (): Partial<Record<TopicId, Tier>> =>
   Object.fromEntries(ALL_TOPICS.map((t) => [t, 1])) as Partial<Record<TopicId, Tier>>;
 
 export function ensureAdaptiveFields(profile: StudentProfile): StudentProfile {
   const currentTier = { ...emptyTiers(), ...profile.currentTier };
-  return {
+  return clampProfile({
     ...profile,
     currentTier,
     topicStreak: { ...profile.topicStreak },
     topicMistakes: { ...profile.topicMistakes },
+    topicCorrect: { ...profile.topicCorrect },
     weakTopics: profile.weakTopics ?? [],
-  };
+  });
 }
 
 export function updateStudentProfile(
@@ -22,11 +24,13 @@ export function updateStudentProfile(
   xpGain = 0
 ): StudentProfile {
   const base = ensureAdaptiveFields(profile);
-  const currentTier = (base.currentTier?.[topic] || 1) as Tier;
+  const floor = floorTier(base);
+  const currentTier = (base.currentTier?.[topic] || floor) as Tier;
   const nextTiers: Partial<Record<TopicId, Tier>> = { ...base.currentTier };
   const topicStreak = { ...base.topicStreak };
   const topicMistakes = { ...base.topicMistakes };
   const weakTopics = [...(base.weakTopics ?? [])];
+  const topicCorrect = { ...base.topicCorrect };
 
   let streak = topicStreak[topic] ?? 0;
   let misses = topicMistakes[topic] ?? 0;
@@ -34,18 +38,19 @@ export function updateStudentProfile(
   if (isCorrect) {
     streak += 1;
     misses = 0;
+    topicCorrect[topic] = (topicCorrect[topic] ?? 0) + 1;
     if (streak >= 3 && currentTier < 4) {
       nextTiers[topic] = (currentTier + 1) as Tier;
       streak = 0;
     }
     const idx = weakTopics.indexOf(topic);
-    if (idx >= 0 && (nextTiers[topic] || currentTier) >= 3) {
+    if (idx >= 0 && (topicCorrect[topic] ?? 0) >= 6 && (nextTiers[topic] || currentTier) >= 3) {
       weakTopics.splice(idx, 1);
     }
   } else {
     misses += 1;
     streak = 0;
-    if (misses >= 2 && currentTier > 1) {
+    if (misses >= 2 && currentTier > floor) {
       nextTiers[topic] = (currentTier - 1) as Tier;
       misses = 0;
     }
@@ -60,6 +65,7 @@ export function updateStudentProfile(
     currentTier: nextTiers,
     topicStreak,
     topicMistakes,
+    topicCorrect,
     weakTopics,
     streak: isCorrect ? base.streak + 1 : 0,
     totalCorrect: base.totalCorrect + (isCorrect ? 1 : 0),
