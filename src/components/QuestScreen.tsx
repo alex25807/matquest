@@ -1,123 +1,218 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { StudentProfile, Theme } from '../types';
-import { generateDivisionQuestion } from '../data/generators/division';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  AdaptiveQuestion,
+  QuestFocus,
+  StudentProfile,
+  TableDrillState,
+  Theme,
+  TopicId,
+} from '../types';
+import {
+  generateQuestionForTopic,
+  getTopicTier,
+  pickNextTopic,
+  TIER_NAMES,
+  TOPIC_LABELS,
+} from '../data/generators';
 import { updateStudentProfile } from '../hooks/useAdaptiveLogic';
 
-const TIER_NAMES: Record<number, string> = {
-  1: 'рџ”Ќ Р Р°Р·РІРµРґРєР°',
-  2: 'рџ”§ РРЅР¶РµРЅРµСЂ',
-  3: 'вљ”пёЏ РњР°СЃС‚РµСЂ',
-  4: 'рџ‘‘ Р›РµРіРµРЅРґР°',
-};
+const QUESTIONS_PER_ROUND = 7;
 
 interface QuestScreenProps {
   profile: StudentProfile;
   onUpdateProfile: (updated: StudentProfile) => void;
   onBack: () => void;
   theme: Theme;
+  focus?: QuestFocus;
 }
 
-export const QuestScreen: React.FC<QuestScreenProps> = ({ 
-  profile, 
-  onUpdateProfile, 
-  onBack, 
-  theme 
-}) => {
-  const topic = 'division_2digit'; 
-  
-  // рџ”’ Р‘РµР·РѕРїР°СЃРЅРѕРµ РїРѕР»СѓС‡РµРЅРёРµ РґР°РЅРЅС‹С… (РёСЃРїРѕР»СЊР·СѓРµРј ?.)
-  const currentTier = profile.currentTier?.[topic] || 1;
-  const streak = profile.streak ?? 0;
-  const mistakes = profile.mistakes ?? 0;
-
-  const [question, setQuestion] = useState<any>(null);
-  const [userAnswer, setUserAnswer] = useState<string>('');
-  const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
+export default function QuestScreen({
+  profile,
+  onUpdateProfile,
+  onBack,
+  theme,
+  focus = 'mixed',
+}: QuestScreenProps) {
+  const [question, setQuestion] = useState<AdaptiveQuestion | null>(null);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [status, setStatus] = useState<'idle' | 'retry' | 'correct' | 'wrong'>('idle');
+  const [hintIndex, setHintIndex] = useState(0);
   const [showHint, setShowHint] = useState(false);
+  const [tierJustUp, setTierJustUp] = useState(false);
+  const [roundIndex, setRoundIndex] = useState(0);
+  const [roundCorrect, setRoundCorrect] = useState(0);
+  const [roundDone, setRoundDone] = useState(false);
+  const [usedSecondTry, setUsedSecondTry] = useState(false);
 
-  const generateNewQuestion = useCallback(() => {
-    const newQ = generateDivisionQuestion(currentTier);
-    setQuestion(newQ);
+  const lastTemplateId = useRef<string | null>(null);
+  const lastTopic = useRef<TopicId | null>(null);
+  const sequentialRef = useRef<TableDrillState | null>(null);
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
+
+  const generateNewQuestion = (index = roundIndex) => {
+    const p = profileRef.current;
+    const topic = pickNextTopic(p, lastTopic.current, index, focus);
+    const tier = getTopicTier(p, topic);
+    const { question: next, sequential } = generateQuestionForTopic(
+      topic,
+      tier,
+      theme,
+      lastTemplateId.current,
+      sequentialRef.current
+    );
+    sequentialRef.current = sequential;
+    lastTemplateId.current = next.templateId;
+    lastTopic.current = next.topic;
+    setQuestion(next);
     setUserAnswer('');
     setStatus('idle');
     setShowHint(false);
-  }, [currentTier]);
+    setHintIndex(0);
+    setTierJustUp(false);
+    setUsedSecondTry(false);
+  };
 
   useEffect(() => {
-    generateNewQuestion();
-  }, [generateNewQuestion]);
+    generateNewQuestion(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const finishAnswer = (isCorrect: boolean, secondTry: boolean) => {
+    if (!question) return;
+    const prevTier = getTopicTier(profile, question.topic);
+    const xp = isCorrect ? (secondTry ? 6 : 12) : 0;
+    const updated = updateStudentProfile(profile, question.topic, isCorrect, xp);
+    const nextTier = getTopicTier(updated, question.topic);
+    setTierJustUp(isCorrect && nextTier > prevTier);
+    if (isCorrect) setRoundCorrect((n) => n + 1);
+    onUpdateProfile(updated);
+    setStatus(isCorrect ? 'correct' : 'wrong');
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!question || status !== 'idle') return;
+    if (!question || (status !== 'idle' && status !== 'retry')) return;
 
-    const numericAnswer = parseFloat(userAnswer);
+    const numericAnswer = parseFloat(userAnswer.replace(',', '.'));
     const isCorrect = numericAnswer === question.answer;
 
     if (isCorrect) {
-      setStatus('correct');
-      const updated = updateStudentProfile(profile, topic, true);
-      onUpdateProfile(updated);
-    } else {
-      setStatus('wrong');
-      const updated = updateStudentProfile(profile, topic, false);
-      onUpdateProfile(updated);
+      finishAnswer(true, status === 'retry' || usedSecondTry);
+      return;
     }
+
+    if (status === 'idle') {
+      const nextHint = Math.min(hintIndex + 1, Math.max(question.hints.length, 1));
+      setUsedSecondTry(true);
+      setStatus('retry');
+      setShowHint(true);
+      setHintIndex(nextHint);
+      setUserAnswer('');
+      return;
+    }
+
+    finishAnswer(false, true);
+  };
+
+  const revealHint = () => {
+    if (!question) return;
+    setShowHint(true);
+    setHintIndex((i) => Math.min(i + 1, question.hints.length));
   };
 
   const handleNext = () => {
-    generateNewQuestion();
+    if (roundIndex + 1 >= QUESTIONS_PER_ROUND) {
+      setRoundDone(true);
+      return;
+    }
+    const nextIndex = roundIndex + 1;
+    setRoundIndex(nextIndex);
+    generateNewQuestion(nextIndex);
   };
 
-  if (!question) {
+  const topic = question?.topic;
+  const currentTier = topic ? getTopicTier(profile, topic) : 1;
+  const topicStreak = topic ? profile.topicStreak?.[topic] ?? 0 : 0;
+  const visibleHints = question?.hints.slice(0, Math.max(hintIndex, showHint ? 1 : 0)) ?? [];
+
+  if (roundDone) {
     return (
-      <div className={`min-h-screen flex items-center justify-center theme-${theme}`}>
-        <div className="text-white text-xl font-orbitron animate-pulse">Р—Р°РіСЂСѓР·РєР° РєРІРµСЃС‚Р°...</div>
+      <div className={`min-h-screen flex items-center justify-center p-4 theme-${theme}`}>
+        <div className="max-w-md w-full neon-border-green rounded-2xl p-8 bg-black/60 text-center">
+          <p className="text-5xl mb-4">Готово</p>
+          <h2 className="font-orbitron text-2xl neon-text-green mb-3">Раунд завершён</h2>
+          <p className="font-nunito text-white/80 mb-6">
+            Верных с первой или второй попытки: {roundCorrect} из {QUESTIONS_PER_ROUND}.
+            Короткая серия — как раз чтобы не устать и захотеть ещё.
+          </p>
+          <button onClick={onBack} className="neon-btn-green w-full py-4">
+            К приключениям
+          </button>
+        </div>
       </div>
     );
   }
 
+  if (!question) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center theme-${theme}`}>
+        <div className="text-white text-xl font-orbitron animate-pulse">Готовим задачу...</div>
+      </div>
+    );
+  }
+
+  const locked = status === 'correct' || status === 'wrong';
+
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 theme-${theme} relative`}>
       <div className="max-w-3xl w-full relative z-10">
-        
-        {/* РЁР°РїРєР° */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-4">
           <button onClick={onBack} className="neon-btn text-sm px-4 py-2">
-            в†ђ Р’С‹Р№С‚Рё РІ РјРµРЅСЋ
+            Выйти
           </button>
-          
-          <div className="neon-border-pink rounded-full px-6 py-2 bg-black/60 backdrop-blur-sm">
-            <span className="font-orbitron text-lg neon-text-pink font-bold">
-              {TIER_NAMES[currentTier]}
+          <div className="neon-border-pink rounded-full px-5 py-2 bg-black/60">
+            <span className="font-orbitron text-sm neon-text-pink font-bold">
+              {TIER_NAMES[currentTier]} · {TOPIC_LABELS[question.topic]}
             </span>
-          </div> {/* <-- Р—РґРµСЃСЊ Р±С‹Р»Р° РїСЂРѕРїСѓС‰РµРЅР° СЃРєРѕР±РєР° > */}
-        </div>
-
-        {/* РџСЂРѕРіСЂРµСЃСЃ-Р±Р°СЂ СЃРµСЂРёРё */}
-        <div className="mb-6 neon-border-blue rounded-full p-1 bg-black/40 backdrop-blur-sm">
-          <div className="flex items-center gap-3 px-4">
-            <span className="text-white/70 font-nunito text-sm font-bold">рџ”Ґ РЎРµСЂРёСЏ:</span>
-            <div className="flex-1 h-3 bg-slate-800 rounded-full overflow-hidden border border-white/10">
-              <div
-                className="h-full bg-gradient-to-r from-orange-400 to-red-500 transition-all duration-700 ease-out"
-                style={{ width: `${Math.min((streak / 3) * 100, 100)}%` }}
-              />
-            </div>
-            <span className="text-orange-400 font-orbitron font-bold">{streak}/3</span>
+          </div>
+          <div className="font-orbitron text-sm text-white/70">
+            {roundIndex + 1}/{QUESTIONS_PER_ROUND}
           </div>
         </div>
 
-        {/* РљР°СЂС‚РѕС‡РєР° СЃ Р·Р°РґР°С‡РµР№ */}
-        <div className={`neon-border-blue rounded-2xl p-6 md:p-10 bg-black/60 backdrop-blur-md text-center transition-all duration-500 ${
-          status === 'correct' ? 'border-green-400 shadow-[0_0_30px_rgba(74,222,128,0.3)]' :
-          status === 'wrong' ? 'border-red-400 shadow-[0_0_30px_rgba(248,113,113,0.3)] animate-pulse' :
-          ''
-        }`}>
-          <h2 className="font-orbitron text-white/60 text-sm uppercase tracking-widest mb-4">
-            РўРµРєСѓС‰РµРµ Р·Р°РґР°РЅРёРµ
+        {focus === 'multiplication_table' && (
+          <p className="text-center text-yellow-200/80 font-nunito text-sm mb-3">
+            Тренировка таблицы: по порядку, вразнобой и наоборот — как настоящая разминка мозга.
+          </p>
+        )}
+
+        <div className="mb-5 neon-border-blue rounded-full p-1 bg-black/40">
+          <div className="flex items-center gap-3 px-4 py-1">
+            <span className="text-white/70 font-nunito text-sm font-bold">Серия темы</span>
+            <div className="flex-1 h-3 bg-slate-800 rounded-full overflow-hidden border border-white/10">
+              <div
+                className="h-full bg-gradient-to-r from-orange-400 to-red-500 transition-all duration-700"
+                style={{ width: `${Math.min((topicStreak / 3) * 100, 100)}%` }}
+              />
+            </div>
+            <span className="text-orange-400 font-orbitron font-bold">{topicStreak}/3</span>
+          </div>
+        </div>
+
+        <div
+          className={`neon-border-blue rounded-2xl p-6 md:p-10 bg-black/60 text-center ${
+            status === 'correct'
+              ? 'border-green-400 shadow-[0_0_30px_rgba(74,222,128,0.3)]'
+              : status === 'wrong' || status === 'retry'
+                ? 'border-red-400 shadow-[0_0_30px_rgba(248,113,113,0.3)]'
+                : ''
+          }`}
+        >
+          <h2 className="font-orbitron text-white/60 text-sm uppercase tracking-widest mb-3">
+            {status === 'retry' ? 'Подумай ещё — подсказка-вопрос ниже' : 'Задание'}
           </h2>
-          <p className="font-nunito text-white text-2xl md:text-4xl font-bold leading-relaxed mb-8">
+          <p className="font-nunito text-white text-2xl md:text-3xl font-bold leading-relaxed mb-8">
             {question.text}
           </p>
 
@@ -126,104 +221,83 @@ export const QuestScreen: React.FC<QuestScreenProps> = ({
               type="number"
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
-              disabled={status !== 'idle'}
-              placeholder="Р’РІРµРґРё РѕС‚РІРµС‚..."
-              className="w-full bg-slate-900/80 text-white text-3xl font-orbitron p-4 rounded-xl border-2 border-cyan-400/50 focus:border-cyan-400 focus:outline-none focus:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition-all placeholder-white/20 disabled:opacity-50 text-center"
+              disabled={locked}
+              placeholder="Ответ числом..."
+              className="w-full bg-slate-900/80 text-white text-3xl font-orbitron p-4 rounded-xl border-2 border-cyan-400/50 focus:border-cyan-400 focus:outline-none text-center disabled:opacity-50"
               autoFocus
             />
 
             <div className="flex gap-3">
-              {status === 'idle' && (
+              {!locked && (
                 <>
                   <button
                     type="submit"
                     disabled={!userAnswer}
-                    className="neon-btn-green flex-1 py-4 text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="neon-btn-green flex-1 py-4 text-lg font-bold disabled:opacity-50"
                   >
-                    вњ“ РџР РћР’Р•Р РРўР¬
+                    Проверить
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowHint(true)}
-                    className="neon-btn flex-1 py-4 text-lg"
-                  >
-                    рџ’Ў РџРћР”РЎРљРђР—РљРђ
+                  <button type="button" onClick={revealHint} className="neon-btn flex-1 py-4 text-lg">
+                    Наводящий вопрос
                   </button>
                 </>
               )}
-
-              {status !== 'idle' && (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="neon-btn-pink w-full py-4 text-lg font-bold"
-                >
-                  Р”РђР›Р¬РЁР• в†’
+              {locked && (
+                <button type="button" onClick={handleNext} className="neon-btn-pink w-full py-4 text-lg font-bold">
+                  {roundIndex + 1 >= QUESTIONS_PER_ROUND ? 'Завершить раунд' : 'Дальше'}
                 </button>
               )}
             </div>
           </form>
 
-          {/* РџРѕРґСЃРєР°Р·РєР° */}
-          {showHint && status === 'idle' && (
-            <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-400/50 rounded-xl animate-fade-in">
-              <p className="text-yellow-200 font-nunito text-sm md:text-base">
-                <span className="font-bold">рџ’Ў РџРѕРґСЃРєР°Р·РєР°:</span> {question.hint}
-              </p>
+          {showHint && visibleHints.length > 0 && !locked && (
+            <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-400/50 rounded-xl text-left">
+              {visibleHints.map((h, i) => (
+                <p key={i} className="text-yellow-200 font-nunito text-sm md:text-base mb-2 last:mb-0">
+                  <span className="font-bold">Вопрос {i + 1}:</span> {h}
+                </p>
+              ))}
             </div>
           )}
 
-          {/* Р РµР·СѓР»СЊС‚Р°С‚: РџСЂР°РІРёР»СЊРЅРѕ */}
+          {status === 'retry' && (
+            <p className="mt-4 text-orange-200 font-nunito text-sm">
+              Почти! Не сдаём готовый ответ — у тебя вторая попытка.
+            </p>
+          )}
+
           {status === 'correct' && (
-            <div className="mt-6 p-4 bg-green-500/20 border border-green-400 rounded-xl animate-bounce-in">
-              <p className="text-green-300 text-xl font-orbitron font-bold">
-                рџЋ‰ РћРўР›РР§РќРћ! РћС‚РІРµС‚: {question.answer}
+            <div className="mt-6 p-4 bg-green-500/20 border border-green-400 rounded-xl text-left">
+              <p className="text-green-300 text-xl font-orbitron font-bold mb-2">
+                Отлично! {question.answer}
               </p>
-              {streak >= 3 && (
-                <p className="text-yellow-300 text-sm mt-2 font-nunito animate-pulse">
-                  в­ђ РЈСЂРѕРІРµРЅСЊ РїРѕРІС‹С€РµРЅ! РўС‹ РіРѕС‚РѕРІ Рє РЅРѕРІС‹Рј РІС‹Р·РѕРІР°Рј!
+              <p className="text-white/80 font-nunito text-sm whitespace-pre-line">{question.explanation}</p>
+              {question.alternativeSolutions?.[0] && (
+                <p className="text-green-200/80 font-nunito text-sm mt-2">
+                  Другой ход: {question.alternativeSolutions[0]}
+                </p>
+              )}
+              {tierJustUp && (
+                <p className="text-yellow-300 text-sm mt-2 font-nunito">
+                  Тема стала сложнее: новые типы задач.
                 </p>
               )}
             </div>
           )}
 
-          {/* Р РµР·СѓР»СЊС‚Р°С‚: РќРµРїСЂР°РІРёР»СЊРЅРѕ */}
           {status === 'wrong' && (
-            <div className="mt-6 p-4 bg-red-500/20 border border-red-400 rounded-xl">
-              <p className="text-red-300 text-xl font-orbitron font-bold">
-                вќЊ РќРµ СЃРѕРІСЃРµРј... Р’РµСЂРЅС‹Р№ РѕС‚РІРµС‚: {question.answer}
+            <div className="mt-6 p-4 bg-red-500/20 border border-red-400 rounded-xl text-left">
+              <p className="text-red-300 text-xl font-orbitron font-bold mb-2">
+                Верный ответ: {question.answer}
               </p>
-              <p className="text-white/70 text-sm mt-2 font-nunito">
-                РќРµ РїРµСЂРµР¶РёРІР°Р№! РћС€РёР±РєРё вЂ” СЌС‚Рѕ С‡Р°СЃС‚СЊ РѕР±СѓС‡РµРЅРёСЏ. РџРѕРїСЂРѕР±СѓР№ РµС‰Рµ СЂР°Р·!
+              <p className="text-white/80 font-nunito text-sm whitespace-pre-line">{question.explanation}</p>
+              <p className="text-white/60 text-sm mt-2 font-nunito">
+                Ошибка — это карта пути. Следующая задача будет чуть другого вида.
               </p>
-              {!showHint && (
-                <button
-                  onClick={() => setShowHint(true)}
-                  className="mt-3 text-yellow-300 hover:text-yellow-200 text-sm font-nunito underline"
-                >
-                  РџРѕРєР°Р·Р°С‚СЊ РїРѕРґСЃРєР°Р·РєСѓ
-                </button>
-              )}
             </div>
           )}
-        </div>
-
-        {/* РЎС‚Р°С‚РёСЃС‚РёРєР° РІРЅРёР·Сѓ */}
-        <div className="mt-6 grid grid-cols-3 gap-3">
-          <div className="neon-border-blue rounded-xl p-3 text-center bg-black/40">
-            <div className="text-white/60 text-xs uppercase font-orbitron">РўРёСЂ</div>
-            <div className="text-white text-2xl font-bold font-nunito">{currentTier}</div>
-          </div>
-          <div className="neon-border-pink rounded-xl p-3 text-center bg-black/40">
-            <div className="text-white/60 text-xs uppercase font-orbitron">РћС€РёР±РєРё</div>
-            <div className="text-red-400 text-2xl font-bold font-nunito">{mistakes}</div>
-          </div>
-          <div className="neon-border-green rounded-xl p-3 text-center bg-black/40">
-            <div className="text-white/60 text-xs uppercase font-orbitron">РўРµРјР°</div>
-            <div className="text-green-400 text-lg font-bold font-nunito">Р”РµР»РµРЅРёРµ</div>
-          </div>
         </div>
       </div>
     </div>
   );
-};
+}

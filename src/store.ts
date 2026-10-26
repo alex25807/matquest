@@ -45,6 +45,16 @@ export function createProfile(name: string, age: number, theme: Theme): StudentP
     lastSession: new Date().toISOString(),
     topicsCompleted: [],
     difficultyMode: 'normal',
+    currentTier: {
+      multiplication_table: 1,
+      division_2digit: 1,
+      motion: 1,
+      fractions: 1,
+      area: 1,
+    },
+    topicStreak: {},
+    topicMistakes: {},
+    weakTopics: [],
   };
 }
 

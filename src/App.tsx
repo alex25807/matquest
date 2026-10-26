@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Theme, StudentProfile } from './types';
+import { Theme, StudentProfile, QuestFocus } from './types';
 import { loadData, saveProfile, createProfile, saveTestResult } from './store';
 import StartScreen from './components/StartScreen';
 import SettingsScreen from './components/SettingsScreen';
 import TestScreen from './components/TestScreen';
-import {QuestScreen} from './components/QuestScreen';
+import QuestScreen from './components/QuestScreen';
 import ResultsScreen from './components/ResultsScreen';
 import NewGameScreen from './components/NewGameScreen';
 
@@ -16,6 +16,7 @@ export default function App() {
   const [screen, setScreen] = useState<AppScreen>('start');
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [theme, setTheme] = useState<Theme>('minecraft');
+  const [questFocus, setQuestFocus] = useState<QuestFocus>('mixed');
 
   // Загрузка данных при старте
   useEffect(() => {
@@ -190,6 +191,10 @@ export default function App() {
           onNewGame={handleNewGameAction}
           onExit={handleExit}
           onPuzzles={() => setScreen('puzzles')}
+          onStartTables={() => {
+            setQuestFocus('multiplication_table');
+            setScreen('quest');
+          }}
           theme={theme}
           onThemeChange={handleThemeChange}
         />
@@ -227,6 +232,7 @@ export default function App() {
           onUpdateProfile={handleUpdateProfile}
           onBack={() => setScreen('start')}
           theme={theme}
+          focus={questFocus}
         />
       ) : null;
     case 'results':
@@ -234,7 +240,14 @@ export default function App() {
         <ResultsScreen
           profile={profile}
           onBack={() => setScreen('start')}
-          onStartQuest={() => setScreen('quest')}
+          onStartQuest={() => {
+            setQuestFocus('mixed');
+            setScreen('quest');
+          }}
+          onStartTables={() => {
+            setQuestFocus('multiplication_table');
+            setScreen('quest');
+          }}
           onRetest={() => setScreen('test')}
           onPuzzles={() => setScreen('puzzles')}
           onUpdateProfile={handleUpdateProfile}

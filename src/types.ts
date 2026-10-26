@@ -1,39 +1,108 @@
-﻿// src/types.ts
+﻿export type Theme = 'minecraft' | 'space' | 'spiderman' | 'dragon';
 
-// 1. Типы для тем оформления (берем из твоего CSS)
-export type Theme = 'minecraft' | 'space' | 'spiderman' | 'dragon';
+export type Screen = 'start' | 'settings' | 'test' | 'quest' | 'results' | 'achievements';
 
-// 2. Типы для адаптивной системы квеста
+export type DifficultyMode = 'normal' | 'advanced';
+
 export type Tier = 1 | 2 | 3 | 4;
-export type TopicId = 'division_2digit' | 'motion' | 'fractions' | 'area';
+export type TopicId =
+  | 'multiplication_table'
+  | 'division_2digit'
+  | 'motion'
+  | 'fractions'
+  | 'area';
 
-// 3. Интерфейс вопроса для квеста
-export interface QuestQuestion {
+export type QuestFocus = 'mixed' | TopicId;
+
+export const ALL_TOPICS: TopicId[] = [
+  'multiplication_table',
+  'division_2digit',
+  'motion',
+  'fractions',
+  'area',
+];
+
+export interface StudentProfile {
+  name: string;
+  age: number;
+  grade: number;
+  theme: Theme;
+  level: number;
+  xp: number;
+  streak: number;
+  totalCorrect: number;
+  totalAttempted: number;
+  achievements: string[];
+  lastSession: string;
+  topicsCompleted: string[];
+  difficultyMode: DifficultyMode;
+  currentTier?: Partial<Record<TopicId, Tier>>;
+  topicStreak?: Partial<Record<TopicId, number>>;
+  topicMistakes?: Partial<Record<TopicId, number>>;
+  weakTopics?: TopicId[];
+  /** @deprecated use topicStreak */
+  tierStreak?: number;
+  /** @deprecated use topicMistakes */
+  consecutiveMistakes?: number;
+}
+
+export interface Question {
+  id: string;
+  topic: string;
+  level: number;
+  question: string;
+  options: string[];
+  correct: number;
+  explanation: string;
+  hint?: string;
+  hints?: string[];
+  alternativeSolutions?: string[];
+  image?: string;
+  figure?: 'square' | 'rectangle' | 'triangle' | 'circle' | 'trapezoid' | 'rhombus' | 'parallelogram' | 'composite';
+  figureData?: Record<string, number | string>;
+  isAdvanced?: boolean;
+}
+
+export interface AdaptiveQuestion {
   id: string;
   topic: TopicId;
   tier: Tier;
-  text: string;       // Текст задачи
-  answer: number;     // Правильный ответ
-  hint: string;       // Подсказка-алгоритм, если ученик ошибся
-  steps?: string[];   // Шаги решения (для Тира 3 и 4)
+  text: string;
+  answer: number;
+  hint: string;
+  hints: string[];
+  explanation: string;
+  alternativeSolutions?: string[];
+  templateId: string;
 }
 
-// 4. Профиль ученика (объединяем старые и новые поля)
-export interface StudentProfile {
-  // --- СТАРЫЕ ПОЛЯ (обязательные, чтобы App.tsx и store.ts не ломались) ---
-  name: string;
-  age: number;
-  theme: Theme;
-  level: number;
-  
-  // Если у тебя в старом коде были поля testResults или что-то еще, 
-  // добавь их сюда как testResults?: any;
+export interface TableDrillState {
+  factor: number;
+  nextN: number;
+}
 
-  // --- НОВЫЕ ПОЛЯ для адаптивного квеста ---
-  // Делаем их опциональными (?), чтобы старый профиль из localStorage 
-  // не вызывал ошибку "property is missing" при первом запуске
-  currentTier?: Record<TopicId, Tier>; 
-  streak?: number;                     
-  mistakes?: number;                   
-  weakTopics?: TopicId[];              
+export interface TestResult {
+  date: string;
+  score: number;
+  totalQuestions: number;
+  level: number;
+  topicsStrength: Record<string, number>;
+}
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  condition: (profile: StudentProfile) => boolean;
+}
+
+export interface GameState {
+  profile: StudentProfile | null;
+  currentQuestion: number;
+  currentLevel: number;
+  testResults: TestResult[];
+  sessionCorrect: number;
+  sessionTotal: number;
+  isTestMode: boolean;
 }

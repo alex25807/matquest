@@ -8,13 +8,14 @@ interface ResultsScreenProps {
   profile: StudentProfile;
   onBack: () => void;
   onStartQuest: () => void;
+  onStartTables: () => void;
   onRetest: () => void;
   onPuzzles: () => void;
   onUpdateProfile: (profile: StudentProfile) => void;
   theme: Theme;
 }
 
-export default function ResultsScreen({ profile, onBack, onStartQuest, onRetest, onPuzzles, onUpdateProfile, theme }: ResultsScreenProps) {
+export default function ResultsScreen({ profile, onBack, onStartQuest, onStartTables, onRetest, onPuzzles, onUpdateProfile, theme }: ResultsScreenProps) {
   const { speak } = useSpeech();
   const accuracy = profile.totalAttempted > 0 ? Math.round((profile.totalCorrect / profile.totalAttempted) * 100) : 0;
   const levelNames: Record<number, string> = { 1: 'Новичок', 2: 'Ученик', 3: 'Знаток', 4: 'Мастер', 5: 'Гуру', 6: 'Магистр' };
@@ -156,12 +157,19 @@ export default function ResultsScreen({ profile, onBack, onStartQuest, onRetest,
         {/* Action buttons */}
         <div className="flex gap-3 mb-4">
           <button onClick={onStartQuest} className="neon-btn-green flex-1">
-            🎮 К КВЕСТУ!
+            КВЕСТ
           </button>
           <button onClick={onRetest} className="neon-btn flex-1">
-            📝 ПЕРЕТЕСТ
+            ПЕРЕТЕСТ
           </button>
         </div>
+
+        <button onClick={onStartTables} className="neon-btn w-full mb-4">
+          ТАБЛИЦА УМНОЖЕНИЯ
+        </button>
+        <p className="text-white/40 text-xs text-center -mt-3 mb-4">
+          По порядку, вразнобой и наоборот — короткая зарядка для ума
+        </p>
 
         <button onClick={onPuzzles} className="neon-btn w-full mb-4" style={{ borderColor: '#fff700', color: '#fff700', background: 'rgba(255, 247, 0, 0.1)' }}>
           🧩 ГОЛОВОЛОМКИ

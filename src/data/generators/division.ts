@@ -1,79 +1,192 @@
-// src/data/generators/division.ts
-import { QuestQuestion, Tier, TopicId } from '../../types';
+﻿import { AdaptiveQuestion, Theme, Tier } from '../../types';
+import { daysWord, hoursWord, pickTemplate, random, TemplateFn, withMeta, worldFlavor } from './common';
 
-// Вспомогательная функция для генерации случайных чисел
-const random = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+export function generateDivisionQuestion(
+  tier: Tier,
+  excludeTemplateId?: string | null,
+  theme: Theme = 'minecraft'
+): AdaptiveQuestion {
+  const topic = 'division_2digit' as const;
+  const world = worldFlavor(theme);
 
-export function generateDivisionQuestion(tier: Tier): QuestQuestion {
-  const topic: TopicId = 'division_2digit';
-  let text = '';
-  let answer = 0;
-  let hint = '';
-
-  switch (tier) {
-    case 1: {
-      // ТИР 1: Разведка (Устный счет, табличное деление на двузначное)
-      // База: Учебник ч.2, стр. 6 (примеры вроде 96 : 24, 80 : 16)
+  const tier1: TemplateFn[] = [
+    () => {
       const divisor = random(11, 25);
       const quotient = random(2, 9);
       const dividend = divisor * quotient;
-      
-      text = `Вычисли устно: ${dividend} : ${divisor}`;
-      answer = quotient;
-      hint = `Вспомни таблицу умножения. Какое число нужно умножить на ${divisor}, чтобы получить ${dividend}? Попробуй подставить числа от 2 до 9.`;
-      break;
-    }
-    
-    case 2: {
-      // ТИР 2: Инженер (Письменное деление столбиком без остатка)
-      // База: Учебник ч.2, стр. 58-60 (алгоритм деления на двузначное число)
+      return {
+        templateId: 'oral_colon',
+        text: `Вычисли: ${dividend} : ${divisor}`,
+        answer: quotient,
+        hint: `Какое число умножить на ${divisor}, чтобы получить ${dividend}?`,
+        hints: [
+          `Деление — обратное умножению. Что неизвестно: множитель?`,
+          `${divisor} × ? = ${dividend}`,
+        ],
+        explanation: `${divisor} × ${quotient} = ${dividend}, значит ${dividend} : ${divisor} = ${quotient}.`,
+      };
+    },
+  ];
+
+  const tier2: TemplateFn[] = [
+    () => {
       const divisor = random(12, 45);
       const quotient = random(11, 99);
       const dividend = divisor * quotient;
-      
-      text = `Реши пример столбиком: ${dividend} : ${divisor}`;
-      answer = quotient;
-      hint = `1. Найди первое неполное делимое.\n2. Определи количество цифр в частном.\n3. Подбери пробную цифру, округлив делитель до десятков (например, до ${Math.round(divisor / 10) * 10}).`;
-      break;
-    }
+      return {
+        templateId: 'column_colon',
+        text: `Реши столбиком: ${dividend} : ${divisor}`,
+        answer: quotient,
+        hint: `Сначала первое неполное делимое — сколько цифр в частном?`,
+        hints: [
+          `Сравни ${divisor} с началом числа ${dividend}. Хватает ли?`,
+          `Пробную цифру подбери по округлению делителя.`,
+        ],
+        explanation: `${dividend} : ${divisor} = ${quotient}. Проверка: ${quotient} × ${divisor} = ${dividend}.`,
+      };
+    },
+  ];
 
-    case 3: {
-      // ТИР 3: Мастер (Текстовая задача в 1-2 действия)
-      // База: Учебник ч.2, стр. 60, №206 (про массу, цену, количество)
-      const itemsCount = random(4, 12);
-      const weightPerItem = random(10, 50); // Гарантированно целое число
-      const actualTotal = weightPerItem * itemsCount;
-      
-      text = `В ${itemsCount} одинаковых мешках ${actualTotal} кг картофеля. Сколько килограммов картофеля в одном таком мешке?`;
-      answer = weightPerItem;
-      hint = `Чтобы найти массу одного предмета, нужно общую массу разделить на количество предметов: ${actualTotal} : ${itemsCount}.`;
-      break;
-    }
+  const tier3: TemplateFn[] = [
+    () => {
+      const bags = random(5, 15);
+      const each = random(8, 25);
+      const total = each * bags;
+      return {
+        templateId: 'bags',
+        text: `В ${bags} одинаковых мешках ${total} кг. Сколько кг в одном?`,
+        answer: each,
+        hint: `Ищем массу одной равной части.`,
+        hints: [
+          `Что общее: мешки одинаковые. Что делать с общей массой?`,
+          `Раздели целое на число частей.`,
+        ],
+        explanation: `${total} : ${bags} = ${each} кг в одном мешке.`,
+      };
+    },
+    () => {
+      const v = random(40, 90);
+      const t = random(2, 6);
+      const s = v * t;
+      return {
+        templateId: 'speed',
+        text: `Герой проехал ${s} км за ${t} ${hoursWord(t)}. Скорость (км/ч)?`,
+        answer: v,
+        hint: `Скорость — путь за один час.`,
+        hints: [
+          `Известны путь и время. Какое действие?`,
+          `${s} : ${t} = ?`,
+        ],
+        explanation: `${s} : ${t} = ${v} км/ч.`,
+      };
+    },
+  ];
 
-    case 4: {
-      // ТИР 4: Легенда (Составная задача на движение или работу)
-      // База: Учебник ч.2, стр. 63, №227 (про теплоход, скорость, время)
-      const speed = random(15, 40); // Скорость (км/день или км/ч)
-      const time1 = random(2, 4);
-      const distance1 = speed * time1;
-      
-      const time2 = random(time1 + 1, time1 + 3);
-      const distance2 = speed * time2;
-      
-      text = `Теплоход за ${time1} дня прошел ${distance1} км. За сколько дней он пройдет ${distance2} км с такой же скоростью?`;
-      answer = time2;
-      hint = `Это задача в два действия.\n1. Узнай скорость: ${distance1} : ${time1} = ${speed} км/день.\n2. Раздели новый путь на скорость: ${distance2} : ${speed}.`;
-      break;
-    }
-  }
+  const tier4: TemplateFn[] = [
+    () => {
+      const days1 = random(2, 5);
+      const speed = random(40, 90);
+      const distance1 = speed * days1;
+      const days2 = random(days1 + 2, days1 + 6);
+      const distance2 = speed * days2;
+      return {
+        templateId: 'ship_days',
+        text: `Теплоход за ${days1} ${daysWord(days1)} прошёл ${distance1} км. За сколько дней он пройдёт ${distance2} км с той же скоростью?`,
+        answer: days2,
+        hint: `Скорость не меняется — найди её, затем новое время.`,
+        hints: [
+          `Что общее у двух участков пути?`,
+          `Сначала путь : дни, потом новый путь : скорость.`,
+        ],
+        explanation: `Скорость ${speed} км в день. ${distance2} : ${speed} = ${days2} ${daysWord(days2)}.`,
+      };
+    },
+    () => {
+      const hours1 = random(2, 4);
+      const speed = random(50, 90);
+      const distance1 = speed * hours1;
+      const hours2 = random(hours1 + 1, hours1 + 4);
+      const distance2 = speed * hours2;
+      return {
+        templateId: 'train_distance',
+        text: `Поезд за ${hours1} ${hoursWord(hours1)} прошёл ${distance1} км. Какой путь за ${hours2} ${hoursWord(hours2)} с той же скоростью?`,
+        answer: distance2,
+        hint: `Сначала скорость, потом умножение на новое время.`,
+        hints: [
+          `Какая величина одинаковая?`,
+          `Скорость = ${distance1} : ${hours1}. Путь = скорость × ${hours2}.`,
+        ],
+        explanation: `v = ${speed} км/ч. S = ${speed} × ${hours2} = ${distance2} км.`,
+      };
+    },
+    () => {
+      const perBox = random(12, 36);
+      const boxes = random(8, 24);
+      const leftover = random(3, perBox - 1);
+      const total = perBox * boxes + leftover;
+      return {
+        templateId: 'packing',
+        text: `На складе ${total} банок, в ящик входит ${perBox}. Сколько полных ящиков?`,
+        answer: boxes,
+        hint: `Ищем, сколько раз ${perBox} содержится в ${total}. Остаток не считается.`,
+        hints: [
+          `Это деление с остатком. Что просят: частное или остаток?`,
+          `Полных ящиков — целая часть от ${total} : ${perBox}.`,
+        ],
+        explanation: `${perBox} × ${boxes} = ${perBox * boxes}, остаток ${leftover}. Ответ: ${boxes}.`,
+      };
+    },
+    () => {
+      const small = random(12, 28);
+      const times = random(3, 8);
+      const large = small * times;
+      return {
+        templateId: 'times_greater',
+        text: `В одном ящике ${large} ${world.loot}, в другом ${small}. Во сколько раз в первом больше?`,
+        answer: times,
+        hint: `«Во сколько раз» — деление большего на меньшее, не вычитание.`,
+        hints: [
+          `Спрашивают не «на сколько», а «во сколько раз».`,
+          `${large} : ${small} = ?`,
+        ],
+        explanation: `${large} : ${small} = ${times}.`,
+      };
+    },
+    () => {
+      const price = random(12, 45);
+      const count = random(6, 15);
+      const paid = price * count;
+      return {
+        templateId: 'price',
+        text: `За ${count} одинаковых вещей заплатили ${paid} рублей. Цена одной?`,
+        answer: price,
+        hint: `Цена одной — общая сумма, делённая на количество.`,
+        hints: [
+          `Вещи одинаковые. Как найти одну долю?`,
+          `${paid} : ${count} = ?`,
+        ],
+        explanation: `${paid} : ${count} = ${price} рублей.`,
+      };
+    },
+    () => {
+      const workers = random(4, 9);
+      const days = random(6, 12);
+      const parts = random(15, 40);
+      const total = workers * days * parts;
+      return {
+        templateId: 'work_rate',
+        text: `${workers} рабочих за ${days} ${daysWord(days)} сделали ${total} деталей поровну. Сколько деталей делал каждый за день?`,
+        answer: parts,
+        hint: `Сначала все рабочие-дни, потом деление общей выработки.`,
+        hints: [
+          `Сколько всего «рабочих дней»?`,
+          `${workers} × ${days} = ${workers * days}. Теперь ${total} раздели на это число.`,
+        ],
+        explanation: `${workers} × ${days} = ${workers * days} человеко-дней. ${total} : ${workers * days} = ${parts}.`,
+      };
+    },
+  ];
 
-  return {
-    // Уникальный ID для каждого сгенерированного вопроса
-    id: `${topic}_t${tier}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-    topic,
-    tier,
-    text,
-    answer,
-    hint
-  };
-}﻿
+  const byTier = { 1: tier1, 2: tier2, 3: tier3, 4: tier4 };
+  return withMeta(topic, tier, pickTemplate(byTier[tier], excludeTemplateId));
+}

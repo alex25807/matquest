@@ -10,6 +10,7 @@ interface StartScreenProps {
   onNewGame: () => void;
   onExit: () => void;
   onPuzzles: () => void;
+  onStartTables?: () => void;
   theme: Theme;
   onThemeChange: (theme: Theme) => void;
 }
@@ -21,7 +22,7 @@ const themeOptions: { id: Theme; name: string; emoji: string; color: string; des
   { id: 'dragon', name: 'Как приручить дракона', emoji: '🐉', color: 'from-amber-900 to-emerald-900', description: 'Приручи дракона математики!' },
 ];
 
-export default function StartScreen({ onStart, onSettings, onNewGame, onExit, onPuzzles, theme, onThemeChange }: StartScreenProps) {
+export default function StartScreen({ onStart, onSettings, onNewGame, onExit, onPuzzles, onStartTables, theme, onThemeChange }: StartScreenProps) {
   const [showThemes, setShowThemes] = useState(false);
   const [greeting, setGreeting] = useState('');
   const { speak } = useSpeech();
@@ -111,6 +112,12 @@ export default function StartScreen({ onStart, onSettings, onNewGame, onExit, on
           <button onClick={onStart} className="neon-btn w-full">
             📊 МОЙ ПРОГРЕСС
           </button>
+
+          {hasProfile && onStartTables && (
+            <button onClick={onStartTables} className="neon-btn w-full">
+              ТАБЛИЦА УМНОЖЕНИЯ
+            </button>
+          )}
 
           <button onClick={onPuzzles} className="neon-btn w-full" style={{ borderColor: '#fff700', color: '#fff700', background: 'rgba(255, 247, 0, 0.1)' }}>
             🧩 ГОЛОВОЛОМКИ

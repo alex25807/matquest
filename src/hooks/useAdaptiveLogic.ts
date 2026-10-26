@@ -1,59 +1,75 @@
-// src/hooks/useAdaptiveLogic.ts
-import { Tier, TopicId, StudentProfile } from '../types';
-export function updateStudentProfile(
-  profile: StudentProfile, 
-  topic: TopicId, 
-  isCorrect: boolean
-): StudentProfile {
-  // Создаем копию профиля, чтобы не мутировать исходный объект напрямую
-  const newProfile = { ...profile };
-  
-  // 🔒 БЕЗОПАСНАЯ ИНИЦИАЛИЗАЦИЯ: 
-  // Если поля еще не созданы (например, у старого профиля из localStorage), 
-  // мы задаем им значения по умолчанию, чтобы приложение не упало с ошибкой.
-  if (!newProfile.currentTier) {
-    newProfile.currentTier = {};
-  }
-  if (newProfile.streak === undefined) {
-    newProfile.streak = 0;
-  }
-  if (newProfile.mistakes === undefined) {
-    newProfile.mistakes = 0;
-  }
-  if (!newProfile.weakTopics) {
-    newProfile.weakTopics = [];
-  }
+﻿import { ALL_TOPICS, StudentProfile, TopicId, Tier } from '../types';
+import { addXP } from '../store';
 
-  // Получаем текущий тир для этой темы (по умолчанию 1, если еще не установлен)
-  const currentTierForTopic = newProfile.currentTier[topic] || 1;
+const emptyTiers = (): Partial<Record<TopicId, Tier>> =>
+  Object.fromEntries(ALL_TOPICS.map((t) => [t, 1])) as Partial<Record<TopicId, Tier>>;
+
+export function ensureAdaptiveFields(profile: StudentProfile): StudentProfile {
+  const currentTier = { ...emptyTiers(), ...profile.currentTier };
+  return {
+    ...profile,
+    currentTier,
+    topicStreak: { ...profile.topicStreak },
+    topicMistakes: { ...profile.topicMistakes },
+    weakTopics: profile.weakTopics ?? [],
+  };
+}
+
+export function updateStudentProfile(
+  profile: StudentProfile,
+  topic: TopicId,
+  isCorrect: boolean,
+  xpGain = 0
+): StudentProfile {
+  const base = ensureAdaptiveFields(profile);
+  const currentTier = (base.currentTier?.[topic] || 1) as Tier;
+  const nextTiers: Partial<Record<TopicId, Tier>> = { ...base.currentTier };
+  const topicStreak = { ...base.topicStreak };
+  const topicMistakes = { ...base.topicMistakes };
+  const weakTopics = [...(base.weakTopics ?? [])];
+
+  let streak = topicStreak[topic] ?? 0;
+  let misses = topicMistakes[topic] ?? 0;
 
   if (isCorrect) {
-    // ✅ Правильный ответ
-    newProfile.streak += 1;
-    newProfile.mistakes = 0; // Сбрасываем счетчик ошибок
-
-    // Если 3 правильных ответа подряд и мы еще не на максимальном 4-м тире
-    if (newProfile.streak >= 3 && currentTierForTopic < 4) {
-      newProfile.currentTier[topic] = (currentTierForTopic + 1) as Tier;
-      newProfile.streak = 0; // Сбрасываем серию после повышения уровня
-      // Здесь в будущем можно добавить вызов функции для показа анимации "Level Up!"
+    streak += 1;
+    misses = 0;
+    if (streak >= 3 && currentTier < 4) {
+      nextTiers[topic] = (currentTier + 1) as Tier;
+      streak = 0;
+    }
+    const idx = weakTopics.indexOf(topic);
+    if (idx >= 0 && (nextTiers[topic] || currentTier) >= 3) {
+      weakTopics.splice(idx, 1);
     }
   } else {
-    // ❌ Неправильный ответ
-    newProfile.mistakes += 1;
-    newProfile.streak = 0; // Сбрасываем серию правильных ответов
-
-    // Если 2 ошибки подряд и мы не на самом базовом 1-м тире
-    if (newProfile.mistakes >= 2 && currentTierForTopic > 1) {
-      newProfile.currentTier[topic] = (currentTierForTopic - 1) as Tier;
-      newProfile.mistakes = 0; // Сбрасываем счетчик ошибок после понижения уровня
+    misses += 1;
+    streak = 0;
+    if (misses >= 2 && currentTier > 1) {
+      nextTiers[topic] = (currentTier - 1) as Tier;
+      misses = 0;
     }
-    
-    // Добавляем тему в список слабых мест, если её там еще нет
-    if (!newProfile.weakTopics.includes(topic)) {
-      newProfile.weakTopics.push(topic);
-    }
+    if (!weakTopics.includes(topic)) weakTopics.push(topic);
   }
 
-  return newProfile;
+  topicStreak[topic] = streak;
+  topicMistakes[topic] = misses;
+
+  let next: StudentProfile = {
+    ...base,
+    currentTier: nextTiers,
+    topicStreak,
+    topicMistakes,
+    weakTopics,
+    streak: isCorrect ? base.streak + 1 : 0,
+    totalCorrect: base.totalCorrect + (isCorrect ? 1 : 0),
+    totalAttempted: base.totalAttempted + 1,
+    lastSession: new Date().toISOString(),
+  };
+
+  if (isCorrect && xpGain > 0) {
+    next = addXP(next, xpGain);
+  }
+
+  return next;
 }
