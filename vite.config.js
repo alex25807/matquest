@@ -12,5 +12,21 @@ export default defineConfig({
     hmr: {
       port: 3000,
     },
+    proxy: {
+      '/yandex-api': {
+        target: 'https://llm.api.cloud.yandex.net',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/yandex-api/, ''),
+      },
+    },
+  },
+  preview: {
+    proxy: {
+      '/yandex-api': {
+        target: 'https://llm.api.cloud.yandex.net',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/yandex-api/, ''),
+      },
+    },
   },
 });

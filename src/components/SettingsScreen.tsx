@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Theme, StudentProfile } from '../types';
 import { useSpeech } from '../hooks/useSpeech';
+import { loadYandexConfig, saveYandexConfig } from '../data/yandex';
 
 interface SettingsScreenProps {
   profile: StudentProfile | null;
@@ -14,9 +15,13 @@ export default function SettingsScreen({ profile, onBack, onUpdateProfile, theme
   const [age, setAge] = useState(profile?.age || 10);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [voiceSpeed, setVoiceSpeed] = useState(0.9);
+  const storedYandex = loadYandexConfig();
+  const [apiKey, setApiKey] = useState(storedYandex.apiKey);
+  const [folderId, setFolderId] = useState(storedYandex.folderId);
   const { speak } = useSpeech();
 
   const handleSave = () => {
+    saveYandexConfig({ apiKey, folderId });
     if (profile && name) {
       const grade = age <= 9 ? 3 : age <= 10 ? 4 : 5;
       onUpdateProfile({ ...profile, name, age, grade });
@@ -111,20 +116,26 @@ export default function SettingsScreen({ profile, onBack, onUpdateProfile, theme
               🤖 ПОДКЛЮЧЕНИЕ ИИ (ЯНДЕКС)
             </label>
             <p className="text-white/60 text-sm mb-2">
-              Для подключения Yandex SpeechKit и Yandex GPT введите API-ключи:
+              Ключ и ID каталога нужны для кнопки «Подробнее с ИИ Яндекса». В GitHub они не отправляются.
             </p>
             <input
               type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
               placeholder="API-ключ Yandex Cloud"
+              autoComplete="off"
               className="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-white font-nunito text-sm mb-2 focus:outline-none focus:border-[#ff00e4]"
             />
             <input
               type="text"
-              placeholder="Folder ID"
+              value={folderId}
+              onChange={(e) => setFolderId(e.target.value)}
+              placeholder="ID каталога"
+              autoComplete="off"
               className="w-full bg-black/50 border border-white/20 rounded-lg p-2 text-white font-nunito text-sm focus:outline-none focus:border-[#ff00e4]"
             />
             <p className="text-white/40 text-xs mt-2">
-              * Сейчас используется встроенный синтез речи. Для подключения ИИ нужен API-ключ Яндекс Cloud.
+              Сохраняется только в этом браузере. У сервисного аккаунта должна быть роль ai.languageModels.user.
             </p>
           </div>
 

@@ -6,6 +6,7 @@ import { useSpeech } from '../hooks/useSpeech';
 import confetti from 'canvas-confetti';
 import FigureDisplay from './FigureDisplay';
 import SmartHints from './SmartHints';
+import YandexExplain from './YandexExplain';
 
 interface TestScreenProps {
   profile: StudentProfile;
@@ -206,6 +207,12 @@ export default function TestScreen({ profile, onComplete, theme }: TestScreenPro
                 </button>
               )}
             </div>
+
+            <YandexExplain
+              task={question.question}
+              method={question.explanation}
+              knownAnswer={question.options[question.correct]}
+            />
 
             {/* Умные подсказки и альтернативные решения */}
             <div className="mt-4">

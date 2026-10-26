@@ -16,6 +16,7 @@ import {
   TOPIC_LABELS,
 } from '../data/generators';
 import { updateStudentProfile } from '../hooks/useAdaptiveLogic';
+import YandexExplain from './YandexExplain';
 
 const QUESTIONS_PER_ROUND = 7;
 
@@ -288,6 +289,12 @@ export default function QuestScreen({
               )}
             </div>
           </form>
+
+          <YandexExplain
+            task={question.text}
+            method={question.method}
+            knownAnswer={status === 'correct' || showAnswer ? question.answer : undefined}
+          />
 
           {visibleHints.length > 0 && !showAnswer && (
             <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-400/50 rounded-xl text-left">
