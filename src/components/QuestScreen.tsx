@@ -140,14 +140,14 @@ export default function QuestScreen({
     return (
       <div className={`min-h-screen flex items-center justify-center p-4 theme-${theme}`}>
         <div className="max-w-md w-full neon-border-green rounded-2xl p-8 bg-black/60 text-center">
-          <p className="text-5xl mb-4">Готово</p>
-          <h2 className="font-orbitron text-2xl neon-text-green mb-3">Раунд завершён</h2>
+          <p className="text-5xl mb-4">Р“РѕС‚РѕРІРѕ</p>
+          <h2 className="font-nunito text-2xl neon-text-green mb-3 font-bold">Р Р°СѓРЅРґ Р·Р°РІРµСЂС€С‘РЅ</h2>
           <p className="font-nunito text-white/80 mb-6">
-            Верных с первой или второй попытки: {roundCorrect} из {QUESTIONS_PER_ROUND}.
-            Короткая серия — как раз чтобы не устать и захотеть ещё.
+            Р’РµСЂРЅС‹С… СЃ РїРµСЂРІРѕР№ РёР»Рё РІС‚РѕСЂРѕР№ РїРѕРїС‹С‚РєРё: {roundCorrect} РёР· {QUESTIONS_PER_ROUND}.
+            РљРѕСЂРѕС‚РєР°СЏ СЃРµСЂРёСЏ вЂ” РєР°Рє СЂР°Р· С‡С‚РѕР±С‹ РЅРµ СѓСЃС‚Р°С‚СЊ Рё Р·Р°С…РѕС‚РµС‚СЊ РµС‰С‘.
           </p>
           <button onClick={onBack} className="neon-btn-green w-full py-4">
-            К приключениям
+            Рљ РїСЂРёРєР»СЋС‡РµРЅРёСЏРј
           </button>
         </div>
       </div>
@@ -157,7 +157,7 @@ export default function QuestScreen({
   if (!question) {
     return (
       <div className={`min-h-screen flex items-center justify-center theme-${theme}`}>
-        <div className="text-white text-xl font-orbitron animate-pulse">Готовим задачу...</div>
+        <div className="text-white text-xl font-nunito animate-pulse">Р“РѕС‚РѕРІРёРј Р·Р°РґР°С‡Сѓ...</div>
       </div>
     );
   }
@@ -169,11 +169,11 @@ export default function QuestScreen({
       <div className="max-w-3xl w-full relative z-10">
         <div className="flex justify-between items-center mb-4">
           <button onClick={onBack} className="neon-btn text-sm px-4 py-2">
-            Выйти
+            Р’С‹Р№С‚Рё
           </button>
           <div className="neon-border-pink rounded-full px-5 py-2 bg-black/60">
-            <span className="font-orbitron text-sm neon-text-pink font-bold">
-              {TIER_NAMES[currentTier]} · {TOPIC_LABELS[question.topic]}
+            <span className="font-nunito text-sm neon-text-pink font-bold">
+              {TIER_NAMES[currentTier]} В· {TOPIC_LABELS[question.topic]}
             </span>
           </div>
           <div className="font-orbitron text-sm text-white/70">
@@ -183,13 +183,13 @@ export default function QuestScreen({
 
         {focus === 'multiplication_table' && (
           <p className="text-center text-yellow-200/80 font-nunito text-sm mb-3">
-            Тренировка таблицы: по порядку, вразнобой и наоборот — как настоящая разминка мозга.
+            РўСЂРµРЅРёСЂРѕРІРєР° С‚Р°Р±Р»РёС†С‹: РїРѕ РїРѕСЂСЏРґРєСѓ, РІСЂР°Р·РЅРѕР±РѕР№ Рё РЅР°РѕР±РѕСЂРѕС‚ вЂ” РєР°Рє РЅР°СЃС‚РѕСЏС‰Р°СЏ СЂР°Р·РјРёРЅРєР° РјРѕР·РіР°.
           </p>
         )}
 
         <div className="mb-5 neon-border-blue rounded-full p-1 bg-black/40">
           <div className="flex items-center gap-3 px-4 py-1">
-            <span className="text-white/70 font-nunito text-sm font-bold">Серия темы</span>
+            <span className="text-white/70 font-nunito text-sm font-bold">РЎРµСЂРёСЏ С‚РµРјС‹</span>
             <div className="flex-1 h-3 bg-slate-800 rounded-full overflow-hidden border border-white/10">
               <div
                 className="h-full bg-gradient-to-r from-orange-400 to-red-500 transition-all duration-700"
@@ -209,8 +209,8 @@ export default function QuestScreen({
                 : ''
           }`}
         >
-          <h2 className="font-orbitron text-white/60 text-sm uppercase tracking-widest mb-3">
-            {status === 'retry' ? 'Подумай ещё — подсказка-вопрос ниже' : 'Задание'}
+          <h2 className="font-nunito text-white/60 text-sm uppercase tracking-widest mb-3">
+            {status === 'retry' ? 'РџРѕРґСѓРјР°Р№ РµС‰С‘ вЂ” РїРѕРґСЃРєР°Р·РєР°-РІРѕРїСЂРѕСЃ РЅРёР¶Рµ' : 'Р—Р°РґР°РЅРёРµ'}
           </h2>
           <p className="font-nunito text-white text-2xl md:text-3xl font-bold leading-relaxed mb-8">
             {question.text}
@@ -222,7 +222,7 @@ export default function QuestScreen({
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
               disabled={locked}
-              placeholder="Ответ числом..."
+              placeholder="РћС‚РІРµС‚ С‡РёСЃР»РѕРј..."
               className="w-full bg-slate-900/80 text-white text-3xl font-orbitron p-4 rounded-xl border-2 border-cyan-400/50 focus:border-cyan-400 focus:outline-none text-center disabled:opacity-50"
               autoFocus
             />
@@ -235,16 +235,16 @@ export default function QuestScreen({
                     disabled={!userAnswer}
                     className="neon-btn-green flex-1 py-4 text-lg font-bold disabled:opacity-50"
                   >
-                    Проверить
+                    РџСЂРѕРІРµСЂРёС‚СЊ
                   </button>
                   <button type="button" onClick={revealHint} className="neon-btn flex-1 py-4 text-lg">
-                    Наводящий вопрос
+                    РќР°РІРѕРґСЏС‰РёР№ РІРѕРїСЂРѕСЃ
                   </button>
                 </>
               )}
               {locked && (
                 <button type="button" onClick={handleNext} className="neon-btn-pink w-full py-4 text-lg font-bold">
-                  {roundIndex + 1 >= QUESTIONS_PER_ROUND ? 'Завершить раунд' : 'Дальше'}
+                  {roundIndex + 1 >= QUESTIONS_PER_ROUND ? 'Р—Р°РІРµСЂС€РёС‚СЊ СЂР°СѓРЅРґ' : 'Р”Р°Р»СЊС€Рµ'}
                 </button>
               )}
             </div>
@@ -254,7 +254,7 @@ export default function QuestScreen({
             <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-400/50 rounded-xl text-left">
               {visibleHints.map((h, i) => (
                 <p key={i} className="text-yellow-200 font-nunito text-sm md:text-base mb-2 last:mb-0">
-                  <span className="font-bold">Вопрос {i + 1}:</span> {h}
+                  <span className="font-bold">Р’РѕРїСЂРѕСЃ {i + 1}:</span> {h}
                 </p>
               ))}
             </div>
@@ -262,24 +262,24 @@ export default function QuestScreen({
 
           {status === 'retry' && (
             <p className="mt-4 text-orange-200 font-nunito text-sm">
-              Почти! Не сдаём готовый ответ — у тебя вторая попытка.
+              РџРѕС‡С‚Рё! РќРµ СЃРґР°С‘Рј РіРѕС‚РѕРІС‹Р№ РѕС‚РІРµС‚ вЂ” Сѓ С‚РµР±СЏ РІС‚РѕСЂР°СЏ РїРѕРїС‹С‚РєР°.
             </p>
           )}
 
           {status === 'correct' && (
             <div className="mt-6 p-4 bg-green-500/20 border border-green-400 rounded-xl text-left">
-              <p className="text-green-300 text-xl font-orbitron font-bold mb-2">
-                Отлично! {question.answer}
+              <p className="text-green-300 text-xl font-nunito font-bold mb-2">
+                РћС‚Р»РёС‡РЅРѕ! {question.answer}
               </p>
               <p className="text-white/80 font-nunito text-sm whitespace-pre-line">{question.explanation}</p>
               {question.alternativeSolutions?.[0] && (
                 <p className="text-green-200/80 font-nunito text-sm mt-2">
-                  Другой ход: {question.alternativeSolutions[0]}
+                  Р”СЂСѓРіРѕР№ С…РѕРґ: {question.alternativeSolutions[0]}
                 </p>
               )}
               {tierJustUp && (
                 <p className="text-yellow-300 text-sm mt-2 font-nunito">
-                  Тема стала сложнее: новые типы задач.
+                  РўРµРјР° СЃС‚Р°Р»Р° СЃР»РѕР¶РЅРµРµ: РЅРѕРІС‹Рµ С‚РёРїС‹ Р·Р°РґР°С‡.
                 </p>
               )}
             </div>
@@ -287,12 +287,12 @@ export default function QuestScreen({
 
           {status === 'wrong' && (
             <div className="mt-6 p-4 bg-red-500/20 border border-red-400 rounded-xl text-left">
-              <p className="text-red-300 text-xl font-orbitron font-bold mb-2">
-                Верный ответ: {question.answer}
+              <p className="text-red-300 text-xl font-nunito font-bold mb-2">
+                Р’РµСЂРЅС‹Р№ РѕС‚РІРµС‚: {question.answer}
               </p>
               <p className="text-white/80 font-nunito text-sm whitespace-pre-line">{question.explanation}</p>
               <p className="text-white/60 text-sm mt-2 font-nunito">
-                Ошибка — это карта пути. Следующая задача будет чуть другого вида.
+                РћС€РёР±РєР° вЂ” СЌС‚Рѕ РєР°СЂС‚Р° РїСѓС‚Рё. РЎР»РµРґСѓСЋС‰Р°СЏ Р·Р°РґР°С‡Р° Р±СѓРґРµС‚ С‡СѓС‚СЊ РґСЂСѓРіРѕРіРѕ РІРёРґР°.
               </p>
             </div>
           )}

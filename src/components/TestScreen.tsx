@@ -135,12 +135,12 @@ export default function TestScreen({ profile, onComplete, theme }: TestScreenPro
         {/* Question card */}
         <div className="neon-border-blue rounded-2xl p-6 bg-black/40 mb-6 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-2">
-            <div className="text-white/50 text-xs font-orbitron">
-              УРОВЕНЬ {question.level} • {question.topic.toUpperCase()}
+            <div className="text-white/50 text-xs font-nunito tracking-wide">
+              Уровень {question.level} • {question.topic}
             </div>
             {question.isAdvanced && (
-              <div className="text-xs font-orbitron neon-text-yellow animate-pulse-neon">
-                ⭐ ПРОДВИНУТЫЙ
+              <div className="text-xs font-nunito font-bold neon-text-yellow animate-pulse-neon">
+                Продвинутый
               </div>
             )}
           </div>
