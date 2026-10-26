@@ -10,7 +10,8 @@ export type TopicId =
   | 'division_2digit'
   | 'motion'
   | 'fractions'
-  | 'area';
+  | 'area'
+  | 'measures';
 
 export type QuestFocus = 'mixed' | TopicId;
 
@@ -20,6 +21,7 @@ export const ALL_TOPICS: TopicId[] = [
   'motion',
   'fractions',
   'area',
+  'measures',
 ];
 
 export interface StudentProfile {
@@ -42,6 +44,8 @@ export interface StudentProfile {
   weakTopics?: TopicId[];
   topicCorrect?: Partial<Record<TopicId, number>>;
   tableDrill?: TableDrillState;
+  /** Следующий вид в теме величин: 0 время, 1 длина, 2 масса, 3 площадь. */
+  measuresDrill?: MeasuresDrillState;
   /** @deprecated use topicStreak */
   tierStreak?: number;
   /** @deprecated use topicMistakes */
@@ -82,6 +86,10 @@ export interface AdaptiveQuestion {
 export interface TableDrillState {
   factor: number;
   nextN: number;
+}
+
+export interface MeasuresDrillState {
+  nextKind: number;
 }
 
 export interface TestResult {

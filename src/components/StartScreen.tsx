@@ -11,6 +11,7 @@ interface StartScreenProps {
   onExit: () => void;
   onPuzzles: () => void;
   onStartTables?: () => void;
+  onStartMeasures?: () => void;
   theme: Theme;
   onThemeChange: (theme: Theme) => void;
 }
@@ -22,7 +23,7 @@ const themeOptions: { id: Theme; name: string; emoji: string; color: string; des
   { id: 'dragon', name: 'Как приручить дракона', emoji: '🐉', color: 'from-amber-900 to-emerald-900', description: 'Приручи дракона математики!' },
 ];
 
-export default function StartScreen({ onStart, onSettings, onNewGame, onExit, onPuzzles, onStartTables, theme, onThemeChange }: StartScreenProps) {
+export default function StartScreen({ onStart, onSettings, onNewGame, onExit, onPuzzles, onStartTables, onStartMeasures, theme, onThemeChange }: StartScreenProps) {
   const [showThemes, setShowThemes] = useState(false);
   const [greeting, setGreeting] = useState('');
   const { speak } = useSpeech();
@@ -116,6 +117,12 @@ export default function StartScreen({ onStart, onSettings, onNewGame, onExit, on
           {hasProfile && onStartTables && (
             <button onClick={onStartTables} className="neon-btn w-full">
               ТАБЛИЦА УМНОЖЕНИЯ
+            </button>
+          )}
+
+          {hasProfile && onStartMeasures && (
+            <button onClick={onStartMeasures} className="neon-btn w-full">
+              ЕДИНИЦЫ ВЕЛИЧИН
             </button>
           )}
 

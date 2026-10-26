@@ -56,6 +56,7 @@ export function createProfile(name: string, age: number, theme: Theme): StudentP
       motion: 1,
       fractions: 1,
       area: 1,
+      measures: 1,
     },
     topicStreak: {},
     topicMistakes: {},

@@ -16,10 +16,19 @@ export function floorTier(profile: {
   return advanced ? 3 : 2;
 }
 
+/** Величины в обычном режиме начинаются с таблицы единиц, даже в 4 классе. */
+export function floorTierFor(
+  profile: { grade?: number; difficultyMode?: DifficultyMode },
+  topic: TopicId
+): Tier {
+  if (topic === 'measures') return profile.difficultyMode === 'advanced' ? 2 : 1;
+  return floorTier(profile);
+}
+
 export function clampProfile(profile: StudentProfile): StudentProfile {
-  const floor = floorTier(profile);
   const currentTier: Partial<Record<TopicId, Tier>> = {};
   for (const topic of ALL_TOPICS) {
+    const floor = floorTierFor(profile, topic);
     const have = (profile.currentTier?.[topic] ?? floor) as Tier;
     currentTier[topic] = Math.max(floor, Math.min(4, have)) as Tier;
   }
@@ -40,10 +49,10 @@ export function tiersFromTest(
 ): StudentProfile {
   const base = clampProfile(profile);
   const ratio = total > 0 ? score / total : 0;
-  const floor = floorTier(base);
-  const suggested = (ratio >= 0.85 ? Math.min(4, floor + 1) : floor) as Tier;
   const currentTier: Partial<Record<TopicId, Tier>> = { ...base.currentTier };
   for (const topic of ALL_TOPICS) {
+    const floor = floorTierFor(base, topic);
+    const suggested = (ratio >= 0.85 ? Math.min(4, floor + 1) : floor) as Tier;
     const have = (currentTier[topic] ?? floor) as Tier;
     currentTier[topic] = Math.max(have, suggested, floor) as Tier;
   }

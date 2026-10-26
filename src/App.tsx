@@ -196,6 +196,10 @@ export default function App() {
             setQuestFocus('multiplication_table');
             setScreen('quest');
           }}
+          onStartMeasures={() => {
+            setQuestFocus('measures');
+            setScreen('quest');
+          }}
           theme={theme}
           onThemeChange={handleThemeChange}
         />
@@ -247,6 +251,10 @@ export default function App() {
           }}
           onStartTables={() => {
             setQuestFocus('multiplication_table');
+            setScreen('quest');
+          }}
+          onStartMeasures={() => {
+            setQuestFocus('measures');
             setScreen('quest');
           }}
           onRetest={() => setScreen('test')}

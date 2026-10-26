@@ -1,6 +1,6 @@
 ﻿import { ALL_TOPICS, StudentProfile, TopicId, Tier } from '../types';
 import { addXP } from '../store';
-import { clampProfile, floorTier } from '../data/progress';
+import { clampProfile, floorTierFor } from '../data/progress';
 
 const emptyTiers = (): Partial<Record<TopicId, Tier>> =>
   Object.fromEntries(ALL_TOPICS.map((t) => [t, 1])) as Partial<Record<TopicId, Tier>>;
@@ -24,7 +24,7 @@ export function updateStudentProfile(
   xpGain = 0
 ): StudentProfile {
   const base = ensureAdaptiveFields(profile);
-  const floor = floorTier(base);
+  const floor = floorTierFor(base, topic);
   const currentTier = (base.currentTier?.[topic] || floor) as Tier;
   const nextTiers: Partial<Record<TopicId, Tier>> = { ...base.currentTier };
   const topicStreak = { ...base.topicStreak };

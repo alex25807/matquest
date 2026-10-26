@@ -3,6 +3,7 @@ import {
   AdaptiveQuestion,
   QuestFocus,
   StudentProfile,
+  MeasuresDrillState,
   TableDrillState,
   Theme,
   TopicId,
@@ -50,6 +51,7 @@ export default function QuestScreen({
   const lastTemplateId = useRef<string | null>(null);
   const lastTopic = useRef<TopicId | null>(null);
   const sequentialRef = useRef<TableDrillState | null>(null);
+  const measuresRef = useRef<MeasuresDrillState | null>(null);
   const profileRef = useRef(profile);
   profileRef.current = profile;
 
@@ -58,20 +60,34 @@ export default function QuestScreen({
     const topic = pickNextTopic(p, lastTopic.current, index, focus);
     const tier = getTopicTier(p, topic);
     const seqIn = sequentialRef.current ?? profileRef.current.tableDrill ?? null;
-    const { question: next, sequential } = generateQuestionForTopic(
+    const measuresIn = measuresRef.current ?? profileRef.current.measuresDrill ?? null;
+    const { question: next, sequential, measures } = generateQuestionForTopic(
       topic,
       tier,
       theme,
       lastTemplateId.current,
-      seqIn
+      seqIn,
+      measuresIn
     );
     sequentialRef.current = sequential;
+    measuresRef.current = measures;
     lastTemplateId.current = next.templateId;
-    if (sequential) {
-      const prev = profileRef.current.tableDrill;
-      if (!prev || prev.factor !== sequential.factor || prev.nextN !== sequential.nextN) {
-        onUpdateProfile({ ...profileRef.current, tableDrill: sequential });
-      }
+    const prevProfile = profileRef.current;
+    const tableChanged =
+      sequential != null &&
+      (!prevProfile.tableDrill ||
+        prevProfile.tableDrill.factor !== sequential.factor ||
+        prevProfile.tableDrill.nextN !== sequential.nextN);
+    const measuresChanged =
+      next.topic === 'measures' &&
+      measures != null &&
+      (!prevProfile.measuresDrill || prevProfile.measuresDrill.nextKind !== measures.nextKind);
+    if (tableChanged || measuresChanged) {
+      onUpdateProfile({
+        ...prevProfile,
+        ...(tableChanged && sequential ? { tableDrill: sequential } : {}),
+        ...(measuresChanged && measures ? { measuresDrill: measures } : {}),
+      });
     }
     lastTopic.current = next.topic;
     setQuestion(next);

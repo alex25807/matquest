@@ -1,6 +1,7 @@
 import {
   AdaptiveQuestion,
   ALL_TOPICS,
+  MeasuresDrillState,
   QuestFocus,
   StudentProfile,
   TableDrillState,
@@ -11,10 +12,11 @@ import {
 import { generateAreaQuestion } from './area';
 import { generateDivisionQuestion } from './division';
 import { generateFractionsQuestion } from './fractions';
+import { generateMeasuresQuestion } from './measures';
 import { generateMotionQuestion } from './motion';
 import { generateMultiplicationQuestion } from './multiplication';
 import { random } from './common';
-import { floorTier } from '../progress';
+import { floorTierFor } from '../progress';
 
 export const TOPIC_LABELS: Record<TopicId, string> = {
   multiplication_table: 'Таблица ×',
@@ -22,6 +24,7 @@ export const TOPIC_LABELS: Record<TopicId, string> = {
   motion: 'Движение',
   fractions: 'Дроби',
   area: 'Площадь',
+  measures: 'Величины',
 };
 
 export const TIER_NAMES: Record<Tier, string> = {
@@ -32,7 +35,7 @@ export const TIER_NAMES: Record<Tier, string> = {
 };
 
 export function getTopicTier(profile: StudentProfile, topic: TopicId): Tier {
-  const floor = floorTier(profile);
+  const floor = floorTierFor(profile, topic);
   return Math.max(floor, profile.currentTier?.[topic] || floor) as Tier;
 }
 
@@ -70,20 +73,29 @@ export function generateQuestionForTopic(
   tier: Tier,
   theme: Theme,
   excludeTemplateId: string | null,
-  sequential: TableDrillState | null
-): { question: AdaptiveQuestion; sequential: TableDrillState | null } {
+  sequential: TableDrillState | null,
+  measures: MeasuresDrillState | null = null
+): {
+  question: AdaptiveQuestion;
+  sequential: TableDrillState | null;
+  measures: MeasuresDrillState | null;
+} {
   switch (topic) {
     case 'multiplication_table': {
       const result = generateMultiplicationQuestion(tier, excludeTemplateId, theme, sequential);
-      return result;
+      return { ...result, measures };
     }
     case 'division_2digit':
-      return { question: generateDivisionQuestion(tier, excludeTemplateId, theme), sequential };
+      return { question: generateDivisionQuestion(tier, excludeTemplateId, theme), sequential, measures };
     case 'motion':
-      return { question: generateMotionQuestion(tier, excludeTemplateId, theme), sequential };
+      return { question: generateMotionQuestion(tier, excludeTemplateId, theme), sequential, measures };
     case 'fractions':
-      return { question: generateFractionsQuestion(tier, excludeTemplateId, theme), sequential };
+      return { question: generateFractionsQuestion(tier, excludeTemplateId, theme), sequential, measures };
     case 'area':
-      return { question: generateAreaQuestion(tier, excludeTemplateId, theme), sequential };
+      return { question: generateAreaQuestion(tier, excludeTemplateId, theme), sequential, measures };
+    case 'measures': {
+      const result = generateMeasuresQuestion(tier, excludeTemplateId, measures);
+      return { question: result.question, sequential, measures: result.measures };
+    }
   }
 }

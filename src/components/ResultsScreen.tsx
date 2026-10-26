@@ -10,13 +10,14 @@ interface ResultsScreenProps {
   onBack: () => void;
   onStartQuest: () => void;
   onStartTables: () => void;
+  onStartMeasures: () => void;
   onRetest: () => void;
   onPuzzles: () => void;
   onUpdateProfile: (profile: StudentProfile) => void;
   theme: Theme;
 }
 
-export default function ResultsScreen({ profile, onBack, onStartQuest, onStartTables, onRetest, onPuzzles, onUpdateProfile, theme }: ResultsScreenProps) {
+export default function ResultsScreen({ profile, onBack, onStartQuest, onStartTables, onStartMeasures, onRetest, onPuzzles, onUpdateProfile, theme }: ResultsScreenProps) {
   const { speak } = useSpeech();
   const accuracy = profile.totalAttempted > 0 ? Math.round((profile.totalCorrect / profile.totalAttempted) * 100) : 0;
   const levelNames: Record<number, string> = { 1: 'Новичок', 2: 'Ученик', 3: 'Знаток', 4: 'Мастер', 5: 'Гуру', 6: 'Магистр' };
@@ -170,6 +171,13 @@ export default function ResultsScreen({ profile, onBack, onStartQuest, onStartTa
         </button>
         <p className="text-white/40 text-xs text-center -mt-3 mb-4">
           По порядку, вразнобой и наоборот — короткая зарядка для ума
+        </p>
+
+        <button onClick={onStartMeasures} className="neon-btn w-full mb-4">
+          ЕДИНИЦЫ ВЕЛИЧИН
+        </button>
+        <p className="text-white/40 text-xs text-center -mt-3 mb-4">
+          Длина, масса, площадь и время: секунды, минуты, часы
         </p>
 
         <button onClick={onPuzzles} className="neon-btn w-full mb-4" style={{ borderColor: '#fff700', color: '#fff700', background: 'rgba(255, 247, 0, 0.1)' }}>
