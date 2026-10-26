@@ -15,7 +15,7 @@ export function generateMotionQuestion(
       const t = random(2, 5);
       return {
         templateId: 'find_s',
-        text: `Герой едет на ${world.vehicle} ${t} ${hoursWord(t)} со скоростью ${v} км/ч. Какой путь (км)?`,
+        text: `Герой ${world.travel} ${t} ${hoursWord(t)} со скоростью ${v} км/ч. Сколько километров он проедет?`,
         answer: v * t,
         hint: `Путь — это скорость, повторённая столько раз, сколько часов.`,
         hints: [

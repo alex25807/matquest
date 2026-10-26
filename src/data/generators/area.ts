@@ -14,7 +14,7 @@ export function generateAreaQuestion(
       const a = random(3, 12);
       return {
         templateId: 'square_p',
-        text: `Квадратный участок на ${world.place} со стороной ${a} м. Периметр забора (м)?`,
+        text: `Квадратный участок ${world.placeIn}: сторона ${a} м. Чему равен периметр забора в метрах?`,
         answer: 4 * a,
         hint: `Периметр — сумма всех сторон. У квадрата они равны.`,
         hints: [

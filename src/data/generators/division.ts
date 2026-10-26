@@ -1,5 +1,5 @@
 ﻿import { AdaptiveQuestion, Theme, Tier } from '../../types';
-import { daysWord, hoursWord, pickTemplate, random, TemplateFn, withMeta, worldFlavor } from './common';
+import { daysWord, hoursWord, pickTemplate, random, ruCount, TemplateFn, withMeta, worldFlavor } from './common';
 
 export function generateDivisionQuestion(
   tier: Tier,
@@ -142,7 +142,7 @@ export function generateDivisionQuestion(
       const large = small * times;
       return {
         templateId: 'times_greater',
-        text: `В одном ящике ${large} ${world.loot}, в другом ${small}. Во сколько раз в первом больше?`,
+        text: `В одном ящике ${ruCount(large, world.loot)}, в другом — ${ruCount(small, world.loot)}. Во сколько раз в первом ящике больше, чем во втором?`,
         answer: times,
         hint: `«Во сколько раз» — деление большего на меньшее, не вычитание.`,
         hints: [

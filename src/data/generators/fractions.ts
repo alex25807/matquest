@@ -1,5 +1,5 @@
 import { AdaptiveQuestion, Theme, Tier } from '../../types';
-import { pickTemplate, random, TemplateFn, withMeta, worldFlavor } from './common';
+import { capFirst, pickTemplate, random, ruCount, TemplateFn, withMeta, worldFlavor } from './common';
 
 const RU_DEN = ['', '', 'вторая', 'третья', 'четвёртая', 'пятая', 'шестая', 'седьмая', 'восьмая', 'девятая', 'десятая'];
 const RU_DEN_PL = ['', '', 'вторых', 'третьих', 'четвёртых', 'пятых', 'шестых', 'седьмых', 'восьмых', 'девятых', 'десятых'];
@@ -72,18 +72,18 @@ export function generateFractionsQuestion(
   const tier3: TemplateFn[] = [
     () => {
       const d = [2, 3, 4, 5][random(0, 3)];
-      const n = random(2, d);
+      const n = d === 2 ? 1 : random(2, d - 1);
       const part = random(6, 20);
       const whole = part * d;
       const value = part * n;
       return {
         templateId: 'n_parts',
-        text: `На ${world.place} ${whole} ${world.loot}. Сколько это ${n}/${d}?`,
+        text: `${capFirst(world.placeIn)} ${ruCount(whole, world.loot)}. Сколько ${world.loot.many} получится, если взять ${n}/${d} от них?`,
         answer: value,
-        hint: `Сначала одна доля, потом несколько таких долей.`,
+        hint: `Сначала найди одну долю, потом возьми таких долей ${n}.`,
         hints: [
-          `Чему равна одна ${d === 2 ? 'половина' : 'доля'}?`,
-          `Умножь одну долю на ${n}.`,
+          `На сколько равных долей делим ${ruCount(whole, world.loot)}?`,
+          `Одну долю умножь на ${n}: столько долей просят.`,
         ],
         explanation: `${whole} : ${d} = ${part} — одна доля. ${part} × ${n} = ${value}.`,
         alternativeSolutions: [`Можно ${whole} × ${n} : ${d} = ${value}.`],
@@ -101,7 +101,7 @@ export function generateFractionsQuestion(
       const rest = whole - taken;
       return {
         templateId: 'rest_of_fraction',
-        text: `Было ${whole} ${world.loot}. Отдали ${n}/${d}. Сколько осталось?`,
+        text: `Было ${ruCount(whole, world.loot)}. Отдали ${n}/${d} от этого количества. Сколько ${world.loot.many} осталось?`,
         answer: rest,
         hint: `Остаток — это целое минус взятая часть, или «недостающие» доли.`,
         hints: [

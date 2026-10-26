@@ -1,5 +1,5 @@
 import { AdaptiveQuestion, TableDrillState, Theme, Tier } from '../../types';
-import { pickTemplate, random, TemplateFn, withMeta, worldFlavor } from './common';
+import { capFirst, CHESTS, pickTemplate, random, ruCount, TemplateFn, withMeta, worldFlavor } from './common';
 
 export function nextSequentialPair(state?: TableDrillState | null): {
   a: number;
@@ -41,7 +41,7 @@ export function generateMultiplicationQuestion(
       answer: product,
       hint: `Сколько получится, если взять ${pair.a} по ${pair.b} раз?`,
       hints: [
-        `Представь ${pair.b} кучек по ${pair.a} ${world.loot}.`,
+        `Представь ${ruCount(pair.b, { one: 'кучку', few: 'кучки', many: 'кучек' })} по ${ruCount(pair.a, world.loot)}.`,
         `Можно сложить: ${Array.from({ length: Math.min(pair.b, 4) }).map(() => pair.a).join(' + ')}${pair.b > 4 ? ' + …' : ''}.`,
       ],
       explanation: `${pair.a} × ${pair.b} = ${product}. Так устроена таблица умножения: одинаковые слагаемые.`,
@@ -77,14 +77,14 @@ export function generateMultiplicationQuestion(
         const product = a * b;
         return {
           templateId: 'table_story',
-          text: `На ${world.place} ${a} сундуков, в каждом по ${b} ${world.loot}. Сколько всего?`,
+          text: `${capFirst(world.placeIn)} ${ruCount(a, CHESTS)}. В каждом сундуке по ${ruCount(b, world.loot)}. Сколько ${world.loot.many} всего?`,
           answer: product,
           hint: `Несколько одинаковых групп — это умножение.`,
           hints: [
-            `Что повторяется: сундуки или ${world.loot} в каждом?`,
+            `Что повторяется: число сундуков или число ${world.loot.many} в каждом?`,
             `Нужно ${a} раз взять по ${b}.`,
           ],
-          explanation: `${a} × ${b} = ${product} ${world.loot}.`,
+          explanation: `${a} × ${b} = ${ruCount(product, world.loot)}.`,
         };
       },
     ],
@@ -168,7 +168,7 @@ export function generateMultiplicationQuestion(
         const total = a * groups + extra;
         return {
           templateId: 'table_leftover',
-          text: `У героя ${total} ${world.loot}. Раскладывает по ${a} в коробку. Сколько полных коробок?`,
+          text: `У героя ${ruCount(total, world.loot)}. Он кладёт их в коробки по ${ruCount(a, world.loot)}. Сколько получится полных коробок?`,
           answer: groups,
           hint: `Полных коробок столько, сколько раз ${a} умещается в ${total}.`,
           hints: [
