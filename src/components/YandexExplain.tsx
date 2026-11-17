@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { explainWithYandex, hasYandexConfig } from '../data/yandex';
+import { canReachYandexFromHere, explainWithYandex, hasYandexConfig } from '../data/yandex';
 
 interface YandexExplainProps {
   task: string;
@@ -19,6 +19,11 @@ export default function YandexExplain({ task, method, knownAnswer }: YandexExpla
   }, [task, knownAnswer]);
 
   const ask = async () => {
+    if (!canReachYandexFromHere()) {
+      setText('');
+      setError('На опубликованной странице браузер не пускает запрос к Яндексу. Подробный разбор открывается, когда МатКвест запущен на этом компьютере.');
+      return;
+    }
     if (!hasYandexConfig()) {
       setError('Впишите API-ключ и ID каталога в настройках. Они останутся только в этом браузере.');
       setText('');

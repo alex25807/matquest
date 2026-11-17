@@ -34,8 +34,26 @@ export function saveTestResult(result: TestResult): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-export function createProfile(name: string, age: number, theme: Theme): StudentProfile {
-  const grade = age <= 9 ? 3 : age <= 10 ? 4 : 5;
+export type SchoolGrade = 3 | 4 | 5;
+
+/** Подсказка класса по возрасту. Класс можно выбрать отдельно. */
+export function gradeFromAge(age: number): SchoolGrade {
+  if (age <= 9) return 3;
+  if (age <= 10) return 4;
+  return 5;
+}
+
+export function schoolGrade(grade: number | undefined, age: number): SchoolGrade {
+  if (grade === 3 || grade === 4 || grade === 5) return grade;
+  return gradeFromAge(age);
+}
+
+export function createProfile(
+  name: string,
+  age: number,
+  theme: Theme,
+  grade: SchoolGrade = gradeFromAge(age)
+): StudentProfile {
   const draft: StudentProfile = {
     name,
     age,

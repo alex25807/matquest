@@ -37,8 +37,8 @@ export default function App() {
     }
   };
 
-  const handleStartNewGame = (name: string, age: number, selectedTheme: Theme) => {
-    const newProfile = createProfile(name, age, selectedTheme);
+  const handleStartNewGame = (name: string, age: number, grade: 3 | 4 | 5, selectedTheme: Theme) => {
+    const newProfile = createProfile(name, age, selectedTheme, grade);
     setProfile(newProfile);
     setTheme(selectedTheme);
     saveProfile(newProfile);

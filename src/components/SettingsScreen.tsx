@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Theme, StudentProfile } from '../types';
 import { useSpeech } from '../hooks/useSpeech';
 import { loadYandexConfig, saveYandexConfig } from '../data/yandex';
+import { clampProfile } from '../data/progress';
+import { gradeFromAge, schoolGrade, SchoolGrade } from '../store';
 
 interface SettingsScreenProps {
   profile: StudentProfile | null;
@@ -13,6 +15,8 @@ interface SettingsScreenProps {
 export default function SettingsScreen({ profile, onBack, onUpdateProfile, theme }: SettingsScreenProps) {
   const [name, setName] = useState(profile?.name || '');
   const [age, setAge] = useState(profile?.age || 10);
+  const [grade, setGrade] = useState<SchoolGrade>(schoolGrade(profile?.grade, profile?.age || 10));
+  const [gradeTouched, setGradeTouched] = useState(Boolean(profile));
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [voiceSpeed, setVoiceSpeed] = useState(0.9);
   const storedYandex = loadYandexConfig();
@@ -20,11 +24,15 @@ export default function SettingsScreen({ profile, onBack, onUpdateProfile, theme
   const [folderId, setFolderId] = useState(storedYandex.folderId);
   const { speak } = useSpeech();
 
+  const handleAge = (next: number) => {
+    if (!gradeTouched) setGrade(gradeFromAge(next));
+    setAge(next);
+  };
+
   const handleSave = () => {
     saveYandexConfig({ apiKey, folderId });
     if (profile && name) {
-      const grade = age <= 9 ? 3 : age <= 10 ? 4 : 5;
-      onUpdateProfile({ ...profile, name, age, grade });
+      onUpdateProfile(clampProfile({ ...profile, name, age, grade }));
       speak('Настройки сохранены! Продолжаем!');
     }
     onBack();
@@ -59,20 +67,42 @@ export default function SettingsScreen({ profile, onBack, onUpdateProfile, theme
           {/* Age */}
           <div className="neon-border-blue rounded-xl p-4 bg-black/30">
             <label className="font-orbitron text-sm text-white/80 block mb-2">
-              🎂 ВОЗРАСТ: {age} лет ({age <= 9 ? '3 класс' : age <= 10 ? '4 класс' : '5 класс'})
+              🎂 ВОЗРАСТ: {age} лет
             </label>
             <input
               type="range"
               min="7"
               max="14"
               value={age}
-              onChange={(e) => setAge(parseInt(e.target.value))}
+              onChange={(e) => handleAge(parseInt(e.target.value, 10))}
               className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#00f3ff]"
             />
             <div className="flex justify-between text-white/50 text-xs mt-1">
               <span>7 лет</span>
               <span>14 лет</span>
             </div>
+            <div className="grid grid-cols-3 gap-2 mt-4">
+              {([3, 4, 5] as const).map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => {
+                    setGradeTouched(true);
+                    setGrade(item);
+                  }}
+                  className={`rounded-lg py-2 font-orbitron text-xs ${
+                    grade === item
+                      ? 'border-2 border-yellow-400 bg-yellow-400/20 text-yellow-200'
+                      : 'border border-white/20 bg-black/30 text-white/70'
+                  }`}
+                >
+                  {item} класс
+                </button>
+              ))}
+            </div>
+            <p className="text-white/50 text-xs mt-2 font-nunito">
+              По возрасту предлагаем {gradeFromAge(age)} класс. Класс задаёт, с каких задач начинать. Уже открытая сложность не снижается.
+            </p>
           </div>
 
           {/* Voice */}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Theme, StudentProfile, DifficultyMode } from '../types';
 import { achievements } from '../data/motivation';
 import { useSpeech } from '../hooks/useSpeech';
@@ -19,6 +19,7 @@ interface ResultsScreenProps {
 
 export default function ResultsScreen({ profile, onBack, onStartQuest, onStartTables, onStartMeasures, onRetest, onPuzzles, onUpdateProfile, theme }: ResultsScreenProps) {
   const { speak } = useSpeech();
+  const [confirmAdvanced, setConfirmAdvanced] = useState(false);
   const accuracy = profile.totalAttempted > 0 ? Math.round((profile.totalCorrect / profile.totalAttempted) * 100) : 0;
   const levelNames: Record<number, string> = { 1: 'Новичок', 2: 'Ученик', 3: 'Знаток', 4: 'Мастер', 5: 'Гуру', 6: 'Магистр' };
   const levelEmojis: Record<string, Record<number, string>> = {
@@ -32,16 +33,24 @@ export default function ResultsScreen({ profile, onBack, onStartQuest, onStartTa
     speak(`Привет, ${profile.name}! Твой уровень: ${levelNames[profile.level]}. Всего решено задач: ${profile.totalAttempted}. Правильных ответов: ${profile.totalCorrect}. Точность: ${accuracy} процентов. Продолжай в том же духе!`);
   };
 
-  const handleToggleMode = () => {
-    const newMode: DifficultyMode = profile.difficultyMode === 'normal' ? 'advanced' : 'normal';
+  const applyMode = (newMode: DifficultyMode) => {
     const updated = clampProfile({ ...profile, difficultyMode: newMode });
     onUpdateProfile(updated);
     saveProfile(updated);
+    setConfirmAdvanced(false);
     if (newMode === 'advanced') {
-      speak('Продвинутый режим активирован! Теперь тебя ждут более сложные задачи и графические фигуры!');
+      speak('Продвинутый режим активирован! Задачи станут сложнее. Если вернуть обычный режим, эта сложность сохранится.');
     } else {
-      speak('Обычный режим. Продолжаем учиться!');
+      speak('Обычный режим. Уже открытые сложные задачи остаются.');
     }
+  };
+
+  const handleToggleMode = () => {
+    if (profile.difficultyMode === 'normal') {
+      setConfirmAdvanced(true);
+      return;
+    }
+    applyMode('normal');
   };
 
   const emojis = levelEmojis[theme] || levelEmojis.minecraft;
@@ -146,9 +155,24 @@ export default function ResultsScreen({ profile, onBack, onStartQuest, onStartTa
           </button>
           <p className="text-white/40 text-xs mt-2">
             {profile.difficultyMode === 'advanced'
-              ? '🔥 Графические задачи, уравнения, теорема Пифагора и логические головоломки!'
-              : '📚 Базовые задачи по арифметике, геометрии и логике'}
+              ? 'Уже открытая сложность остаётся, даже если вернуть обычный режим.'
+              : 'Продвинутый режим поднимает нижнюю сложность. Сама она потом не снижается.'}
           </p>
+          {confirmAdvanced && (
+            <div className="mt-3 rounded-lg border border-yellow-400/50 bg-yellow-400/10 p-3">
+              <p className="text-yellow-100 text-sm font-nunito mb-3">
+                Включить продвинутый режим? Задачи станут сложнее. Если потом вернуть обычный режим, уже открытые сложные задачи останутся.
+              </p>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => applyMode('advanced')} className="neon-btn-green flex-1 py-2 text-sm">
+                  Да, включить
+                </button>
+                <button type="button" onClick={() => setConfirmAdvanced(false)} className="neon-btn flex-1 py-2 text-sm">
+                  Оставить обычный
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Voice button */}

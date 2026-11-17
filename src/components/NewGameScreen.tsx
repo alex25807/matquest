@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Theme } from '../types';
 import { useSpeech } from '../hooks/useSpeech';
+import { gradeFromAge, SchoolGrade } from '../store';
 
 interface NewGameScreenProps {
-  onStart: (name: string, age: number, theme: Theme) => void;
+  onStart: (name: string, age: number, grade: SchoolGrade, theme: Theme) => void;
   onBack: () => void;
   theme: Theme;
   onThemeChange: (theme: Theme) => void;
@@ -19,8 +20,15 @@ const themeOptions: { id: Theme; name: string; emoji: string; color: string; des
 export default function NewGameScreen({ onStart, onBack, theme, onThemeChange }: NewGameScreenProps) {
   const [name, setName] = useState('');
   const [age, setAge] = useState(10);
+  const [grade, setGrade] = useState<SchoolGrade>(4);
+  const [gradeTouched, setGradeTouched] = useState(false);
   const [step, setStep] = useState(1);
   const { speak } = useSpeech();
+
+  const handleAge = (next: number) => {
+    if (!gradeTouched) setGrade(gradeFromAge(next));
+    setAge(next);
+  };
 
   const handleStart = () => {
     if (!name.trim()) {
@@ -28,7 +36,7 @@ export default function NewGameScreen({ onStart, onBack, theme, onThemeChange }:
       return;
     }
     speak(`Отлично, ${name}! Добро пожаловать в МатКвест! Сейчас мы определим твой уровень!`);
-    onStart(name.trim(), age, theme);
+    onStart(name.trim(), age, grade, theme);
   };
 
   return (
@@ -81,16 +89,42 @@ export default function NewGameScreen({ onStart, onBack, theme, onThemeChange }:
                 min="7"
                 max="14"
                 value={age}
-                onChange={(e) => setAge(parseInt(e.target.value))}
+                onChange={(e) => handleAge(parseInt(e.target.value, 10))}
                 className="w-full h-3 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#39ff14] mb-2"
               />
               <div className="flex justify-between text-white/50 text-xs mb-2">
                 <span>7</span>
                 <span>14</span>
               </div>
-              <div className="font-orbitron text-lg neon-text-green">
-                {age} лет • {age <= 9 ? '3 класс' : age <= 10 ? '4 класс' : '5 класс'}
+              <div className="font-orbitron text-lg neon-text-green">{age} лет</div>
+            </div>
+
+            <div className="neon-border-green rounded-2xl p-6 bg-black/40 mb-6">
+              <label className="font-orbitron text-sm text-white/80 block mb-3">
+                📚 В КАКОМ ТЫ КЛАССЕ?
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {([3, 4, 5] as const).map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => {
+                      setGradeTouched(true);
+                      setGrade(item);
+                    }}
+                    className={`rounded-xl py-3 font-orbitron text-sm ${
+                      grade === item
+                        ? 'border-2 border-yellow-400 bg-yellow-400/20 text-yellow-200'
+                        : 'border border-white/20 bg-black/30 text-white/70'
+                    }`}
+                  >
+                    {item} класс
+                  </button>
+                ))}
               </div>
+              <p className="text-white/50 text-xs mt-3 font-nunito">
+                По возрасту предлагаем {gradeFromAge(age)} класс. Если ты учишься в другом — выбери его.
+              </p>
             </div>
 
             <button

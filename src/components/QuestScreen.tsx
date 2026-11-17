@@ -20,6 +20,13 @@ import YandexExplain from './YandexExplain';
 
 const QUESTIONS_PER_ROUND = 7;
 
+function parseWholeAnswer(raw: string): number | null {
+  const text = raw.trim();
+  if (!/^\d+$/.test(text)) return null;
+  const value = Number(text);
+  return Number.isInteger(value) ? value : null;
+}
+
 interface QuestScreenProps {
   profile: StudentProfile;
   onUpdateProfile: (updated: StudentProfile) => void;
@@ -124,8 +131,8 @@ export default function QuestScreen({
     e.preventDefault();
     if (!question || status === 'correct' || showAnswer) return;
 
-    const numericAnswer = parseFloat(userAnswer.replace(',', '.'));
-    const isCorrect = numericAnswer === question.answer;
+    const numericAnswer = parseWholeAnswer(userAnswer);
+    const isCorrect = numericAnswer !== null && numericAnswer === question.answer;
 
     if (isCorrect) {
       finishAnswer(true, helpStep > 0);
@@ -168,7 +175,7 @@ export default function QuestScreen({
           <p className="text-5xl mb-4">Готово</p>
           <h2 className="font-nunito text-2xl neon-text-green mb-3 font-bold">Раунд завершён</h2>
           <p className="font-nunito text-white/80 mb-6">
-            Верных с первой или второй попытки: {roundCorrect} из {QUESTIONS_PER_ROUND}.
+            Верных решений: {roundCorrect} из {QUESTIONS_PER_ROUND}.
             Короткая серия — как раз чтобы не устать и захотеть ещё.
           </p>
           <button onClick={onBack} className="neon-btn-green w-full py-4">

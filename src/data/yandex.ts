@@ -39,15 +39,20 @@ interface ExplainRequest {
   knownAnswer?: string | number;
 }
 
-function endpoint(): string {
+export function canReachYandexFromHere(): boolean {
+  if (typeof window === 'undefined') return false;
   const host = window.location.hostname;
-  if (host === 'localhost' || host === '127.0.0.1') {
-    return '/yandex-api/foundationModels/v1/completion';
-  }
-  return 'https://llm.api.cloud.yandex.net/foundationModels/v1/completion';
+  return host === 'localhost' || host === '127.0.0.1';
+}
+
+function endpoint(): string {
+  return '/yandex-api/foundationModels/v1/completion';
 }
 
 export async function explainWithYandex(request: ExplainRequest): Promise<string> {
+  if (!canReachYandexFromHere()) {
+    throw new Error('На опубликованной странице браузер не пускает запрос к Яндексу. Подробный разбор открывается, когда МатКвест запущен на этом компьютере.');
+  }
   const config = loadYandexConfig();
   if (!hasYandexConfig(config)) {
     throw new Error('Впишите API-ключ и ID каталога в настройках. Они останутся только в этом браузере.');

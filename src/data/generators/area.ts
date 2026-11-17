@@ -41,6 +41,7 @@ export function generateAreaQuestion(
           `P = 2 × (длина + ширина).`,
         ],
         explanation: `P = 2 × (${a} + ${b}) = ${2 * (a + b)} м.`,
+        method: `Периметр прямоугольника: P = 2 × (длина + ширина). Проверь сложением всех четырёх сторон.`,
       };
     },
     () => {
@@ -55,6 +56,21 @@ export function generateAreaQuestion(
           `S = ${a} × ${a}.`,
         ],
         explanation: `S = ${a} × ${a} = ${a * a} см².`,
+      };
+    },
+    () => {
+      const a = random(12, 30);
+      const b = random(8, 20);
+      return {
+        templateId: 'carpet_s',
+        text: `Ковёр ${a} дм на ${b} дм. Какая у него площадь (дм²)?`,
+        answer: a * b,
+        hint: `Площадь прямоугольника — произведение сторон.`,
+        hints: [
+          `Единица ответа — квадратные дециметры.`,
+          `S = ${a} × ${b}.`,
+        ],
+        explanation: `S = ${a} × ${b} = ${a * b} дм².`,
       };
     },
   ];
@@ -73,6 +89,26 @@ export function generateAreaQuestion(
           `S = ${a} × ${b}.`,
         ],
         explanation: `S = ${a} × ${b} = ${a * b} м².`,
+      };
+    },
+    () => {
+      const path = random(2, 3);
+      const innerA = random(6, 16);
+      const innerB = random(4, 12);
+      const a = innerA + 2 * path;
+      const b = innerB + 2 * path;
+      const frame = a * b - innerA * innerB;
+      return {
+        templateId: 'frame_area',
+        text: `Прямоугольный двор ${a} м × ${b} м. По краю дорожка шириной ${path} м. Площадь дорожки (м²)?`,
+        answer: frame,
+        hint: `Площадь рамки = площадь большого прямоугольника минус площадь внутреннего.`,
+        hints: [
+          `Внутренний прямоугольник: стороны меньше на ${2 * path} м.`,
+          `S_дорожки = ${a}×${b} − ${innerA}×${innerB}.`,
+        ],
+        explanation: `Внутри ${innerA} × ${innerB} = ${innerA * innerB}. Снаружи ${a * b}. Дорожка: ${a * b} − ${innerA * innerB} = ${frame} м².`,
+        method: `Составная задача: найди обе площади, затем вычти. Периметр здесь не нужен.`,
       };
     },
   ];

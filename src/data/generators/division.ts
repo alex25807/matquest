@@ -1,4 +1,4 @@
-﻿import { AdaptiveQuestion, Theme, Tier } from '../../types';
+import { AdaptiveQuestion, Theme, Tier } from '../../types';
 import { daysWord, hoursWord, pickTemplate, random, ruCount, TemplateFn, withMeta, worldFlavor } from './common';
 
 export function generateDivisionQuestion(
@@ -43,6 +43,40 @@ export function generateDivisionQuestion(
           `Пробную цифру подбери по округлению делителя.`,
         ],
         explanation: `${dividend} : ${divisor} = ${quotient}. Проверка: ${quotient} × ${divisor} = ${dividend}.`,
+        method: `Деление столбиком: подбирай цифры частного, умножай и вычитай. В конце проверь умножением.`,
+      };
+    },
+    () => {
+      const bags = random(4, 12);
+      const each = random(8, 25);
+      const total = each * bags;
+      return {
+        templateId: 'bags_floor',
+        text: `В ${bags} одинаковых мешках ${total} кг. Сколько кг в одном мешке?`,
+        answer: each,
+        hint: `Ищем массу одной равной части.`,
+        hints: [
+          `Мешки одинаковые. Что сделать с общей массой?`,
+          `${total} : ${bags} = ?`,
+        ],
+        explanation: `${total} : ${bags} = ${each} кг в одном мешке.`,
+        method: `Равные части: общая величина делится на число частей. Проверка: масса одного × число мешков.`,
+      };
+    },
+    () => {
+      const meters = random(12, 40);
+      const rolls = random(3, 9);
+      const total = meters * rolls;
+      return {
+        templateId: 'fabric_rolls',
+        text: `Из ${total} м ткани сшили ${rolls} одинаковых рулонов. Сколько метров в одном рулоне?`,
+        answer: meters,
+        hint: `Рулоны одинаковые — ищем одну часть.`,
+        hints: [
+          `Что известно: всего метров и число рулонов.`,
+          `${total} : ${rolls} = ?`,
+        ],
+        explanation: `${total} : ${rolls} = ${meters} м в одном рулоне.`,
       };
     },
   ];
@@ -78,6 +112,25 @@ export function generateDivisionQuestion(
           `${s} : ${t} = ?`,
         ],
         explanation: `${s} : ${t} = ${v} км/ч.`,
+      };
+    },
+    () => {
+      const price = random(15, 60);
+      const bought = random(3, 8);
+      const spent = price * bought;
+      const had = spent + random(20, 80);
+      const left = had - spent;
+      return {
+        templateId: 'buy_left',
+        text: `Было ${had} рублей. Купили ${bought} одинаковых вещей по ${price} рублей. Сколько рублей осталось?`,
+        answer: left,
+        hint: `Сначала расход, потом остаток.`,
+        hints: [
+          `Сколько всего потратили: ${bought} × ${price}?`,
+          `Остаток = было − израсходовали.`,
+        ],
+        explanation: `${bought} × ${price} = ${spent}. ${had} − ${spent} = ${left} рублей.`,
+        method: `Составная задача в 2 действия: сначала умножение (покупка), затем вычитание (остаток).`,
       };
     },
   ];

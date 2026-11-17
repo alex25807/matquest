@@ -42,6 +42,7 @@ export function generateMotionQuestion(
           `Скорость = путь : время.`,
         ],
         explanation: `v = ${s} : ${t} = ${v} км/ч.`,
+        method: `Скорость = путь : время. Проверка: скорость × время снова даёт путь.`,
       };
     },
     () => {
@@ -58,6 +59,61 @@ export function generateMotionQuestion(
           `t = S : v.`,
         ],
         explanation: `t = ${s} : ${v} = ${t} ${hoursWord(t)}.`,
+      };
+    },
+    () => {
+      const v = random(4, 12) * 10;
+      const t = random(2, 5);
+      const s = v * t;
+      return {
+        templateId: 'find_s_named',
+        text: `Автобус ехал ${t} ${hoursWord(t)} со скоростью ${v} км/ч. Какой путь он проехал (км)?`,
+        answer: s,
+        hint: `Путь = скорость × время.`,
+        hints: [
+          `Что известно: скорость и время.`,
+          `${v} × ${t} = ?`,
+        ],
+        explanation: `S = ${v} × ${t} = ${s} км.`,
+      };
+    },
+    () => {
+      const minutes = [2, 3, 4, 5, 6, 10, 12, 15][random(0, 7)];
+      const chunk = random(3, 9);
+      const meters = chunk * minutes;
+      const perHour = chunk * 60;
+      return {
+        templateId: 'meters_per_hour',
+        text: `За ${minutes} мин прошли ${meters} м с одной и той же скоростью. Сколько метров получится за 1 час?`,
+        answer: perHour,
+        hint: `Сначала узнай, сколько таких отрезков времени в одном часе.`,
+        hints: [
+          `Час длиннее этих минут. Сколько раз они укладываются в 60 минут?`,
+          `Найденное число отрезков умножь на пройденные метры.`,
+        ],
+        explanation: `В часе ${60 / minutes} раз по ${minutes} мин. ${meters} × ${60 / minutes} = ${perHour} м.`,
+        method: `Одна скорость: переведи время в одинаковые отрезки и умножь путь одного отрезка. Ответ вычислен.`,
+      };
+    },
+    () => {
+      const add = random(2, 4);
+      let oldSpeed = random(4, 8);
+      if (oldSpeed === add) oldSpeed += 1;
+      const newSpeed = oldSpeed + add;
+      const oldTime = newSpeed * 2;
+      const distance = oldSpeed * oldTime;
+      const newTime = oldSpeed * 2;
+      return {
+        templateId: 'faster_same_path',
+        text: `Путь ${distance} км занял ${oldTime} ч. За сколько часов пройдут тот же путь, если скорость станет на ${add} км/ч больше?`,
+        answer: newTime,
+        hint: `Скорость в условии не названа. Её можно найти из пути и времени.`,
+        hints: [
+          `Какое действие находит скорость по пути и времени?`,
+          `К этой скорости прибавь увеличение и раздели тот же путь на новую скорость.`,
+        ],
+        explanation: `Сначала ${distance} : ${oldTime} = ${oldSpeed} км/ч. Новая скорость ${oldSpeed} + ${add} = ${newSpeed} км/ч. ${distance} : ${newSpeed} = ${newTime} ч.`,
+        method: `Тот же путь в одну сторону: найди скорость, увеличь её и снова найди время. Ответ вычислен.`,
       };
     },
   ];
@@ -77,6 +133,26 @@ export function generateMotionQuestion(
           `v = ${v * t1} : ${t1}. Затем умножь на ${t2}.`,
         ],
         explanation: `Скорость ${v} км/ч. Новый путь ${v} × ${t2} = ${v * t2} км.`,
+        method: `Составная задача в 2 действия: найди скорость, затем новый путь. Проверь: путь : время = скорость.`,
+      };
+    },
+    () => {
+      const v = random(30, 70);
+      const t1 = random(2, 4);
+      const t2 = random(1, 3);
+      const s1 = v * t1;
+      const s2 = v * t2;
+      return {
+        templateId: 'two_legs',
+        text: `Сначала ехали ${t1} ${hoursWord(t1)} со скоростью ${v} км/ч, потом ещё ${t2} ${hoursWord(t2)} с той же скоростью. Весь путь (км)?`,
+        answer: s1 + s2,
+        hint: `Найди каждый участок, потом сложи.`,
+        hints: [
+          `Первый участок: ${v} × ${t1}.`,
+          `Второй участок: ${v} × ${t2}. Сложи пути.`,
+        ],
+        explanation: `${v} × ${t1} = ${s1}, ${v} × ${t2} = ${s2}. Всего ${s1 + s2} км.`,
+        alternativeSolutions: [`Можно сложить время: (${t1} + ${t2}) × ${v} = ${s1 + s2}.`],
       };
     },
   ];

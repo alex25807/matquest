@@ -58,3 +58,7 @@ Desktop.ini
 
 # Yandex API keys
 yandex-config.local.ts
+
+# Локальные учебные материалы (не публиковать автоматически)
+/База знаний/
+/Тесты/

@@ -87,6 +87,61 @@ export function generateMultiplicationQuestion(
           explanation: `${a} × ${b} = ${ruCount(product, world.loot)}.`,
         };
       },
+      () => {
+        const round = [25, 50][random(0, 1)];
+        const n = random(2, 9);
+        const product = round * n;
+        return {
+          templateId: 'oral_round',
+          text: `Устный счёт: ${round} × ${n} = ?`,
+          answer: product,
+          hint: `Круглое число удобно считать через 100 или через десятки.`,
+          hints: [
+            round === 25
+              ? `25 × 4 = 100, поэтому 25 × ${n} = 100 × ${n} : 4.`
+              : `50 × 2 = 100, поэтому 50 × ${n} = 100 × ${n} : 2.`,
+            `Можно идти шагами: ${round} × ${n - 1} = ${round * (n - 1)}, потом прибавь ещё ${round}.`,
+          ],
+          explanation: `${round} × ${n} = ${product}.`,
+          method: `Устный счёт с круглыми числами: опирайся на удобные опорные факты (25×4=100, 50×2=100).`,
+        };
+      },
+      () => {
+        const hundreds = random(1, 9);
+        const tens = random(1, 9);
+        const ones = random(1, 9);
+        const value = hundreds * 100 + tens * 10 + ones;
+        return {
+          templateId: 'place_sum',
+          text: `Число разложили на разрядные слагаемые: ${hundreds * 100} + ${tens * 10} + ${ones}. Какое это число?`,
+          answer: value,
+          hint: `Каждое слагаемое стоит на своём разряде: сотни, десятки, единицы.`,
+          hints: [
+            `Какое слагаемое показывает сотни, какое — десятки, какое — единицы?`,
+            `Сложи слагаемые как обычные числа. Нули между цифрами не выбрасывай.`,
+          ],
+          explanation: `${hundreds * 100} + ${tens * 10} + ${ones} = ${value}.`,
+          method: `Разрядное слагаемое уже показывает, сколько в числе сотен, десятков и единиц. Ответ вычислен.`,
+        };
+      },
+      () => {
+        const hundreds = random(1, 9);
+        const tens = random(0, 9);
+        const ones = random(0, 9);
+        const value = hundreds * 100 + tens * 10 + ones;
+        return {
+          templateId: 'place_hundreds',
+          text: `Сколько сотен в числе ${value}?`,
+          answer: hundreds,
+          hint: `Сотни — это третий разряд справа, не десятки и не единицы.`,
+          hints: [
+            `Какая цифра стоит на месте сотен?`,
+            `Закрой десятки и единицы. Оставшееся число и есть сотни.`,
+          ],
+          explanation: `${value} = ${hundreds} сот. + ${tens} дес. + ${ones} ед. Сотен: ${hundreds}.`,
+          method: `В трёхзначном числе цифра сотен — первая слева. Ответ вычислен.`,
+        };
+      },
     ],
     3: [
       () => {
@@ -122,23 +177,61 @@ export function generateMultiplicationQuestion(
           explanation: `? = ${product} : ${a} = ${b}, потому что ${a} × ${b} = ${product}.`,
         };
       },
+      () => {
+        const base = 125;
+        const n = [2, 4, 8][random(0, 2)];
+        const product = base * n;
+        return {
+          templateId: 'oral_125',
+          text: `Устный счёт: ${base} × ${n} = ?`,
+          answer: product,
+          hint: `125 × 8 = 1000. От этого удобно идти.`,
+          hints: [
+            n === 8
+              ? `125 × 8 = 1000.`
+              : n === 4
+                ? `125 × 8 = 1000, значит 125 × 4 — половина.`
+                : `125 × 2 = 250.`,
+            `Проверь обратным действием: ответ раздели на ${n}. Снова должно получиться 125.`,
+          ],
+          explanation: `${base} × ${n} = ${product}.`,
+          method: `Опорный факт 125 × 8 = 1000 помогает считать 125 × 2 и 125 × 4.`,
+        };
+      },
+      () => {
+        const meters = random(12, 28);
+        const rolls = random(3, 8);
+        const total = meters * rolls;
+        return {
+          templateId: 'fabric_buy',
+          text: `Купили ${rolls} одинаковых рулонов ткани по ${meters} м. Сколько метров ткани купили всего?`,
+          answer: total,
+          hint: `Несколько одинаковых длин — умножение.`,
+          hints: [
+            `Что повторяется: длина одного рулона.`,
+            `${meters} × ${rolls} = ?`,
+          ],
+          explanation: `${meters} × ${rolls} = ${total} м.`,
+        };
+      },
     ],
     4: [
       () => {
         const a = random(4, 9);
-        const b = random(6, 9);
+        const b = random(6, 8);
+        const rest = 10 - b;
+        const extra = a * rest;
         const product = a * b;
-        const extra = a * 2;
         return {
           templateId: 'table_near',
-          text: `Хитрый ход: ${a} × ${b} можно как ${a} × 10 − ${a} × ${10 - b}. Чему равно ${a} × ${b}?`,
+          text: `Хитрый ход: ${a} × ${b} можно как ${a} × 10 − ${a} × ${rest}. Чему равно ${a} × ${b}?`,
           answer: product,
           hint: `Разбей на удобные части, которые точно знаешь.`,
           hints: [
-            `${a} × 10 = ${a * 10}. На сколько «лишних» ${a} мы взяли?`,
-            `Отними ${extra} от ${a * 10}.`,
+            `${a} × 10 больше, чем ${a} × ${b}. Сколько лишних групп по ${a} получилось?`,
+            `Лишних групп — ${rest}. Вычти ${a} × ${rest} из ${a} × 10.`,
           ],
-          explanation: `${a} × 10 = ${a * 10}, ${a} × ${10 - b} = ${extra}, ${a * 10} − ${extra} = ${product}.`,
+          explanation: `${a} × 10 = ${a * 10}, ${a} × ${rest} = ${extra}, ${a * 10} − ${extra} = ${product}.`,
           alternativeSolutions: [`Можно идти от ${a} × ${b - 1} = ${a * (b - 1)} и прибавить ещё ${a}.`],
         };
       },
@@ -163,7 +256,8 @@ export function generateMultiplicationQuestion(
       },
       () => {
         const a = random(4, 9);
-        const groups = random(3, 6);
+        let groups = random(3, 6);
+        if (groups === a) groups = a >= 6 ? 3 : groups + 1;
         const extra = random(2, a - 1);
         const total = a * groups + extra;
         return {

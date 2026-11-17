@@ -54,7 +54,6 @@ export function generateFractionsQuestion(
     () => {
       const d = [2, 4, 5, 8, 10][random(0, 4)];
       const whole = d * random(4, 12);
-      const n = 1;
       return {
         templateId: 'one_part',
         text: `Найди 1/${d} от ${whole}.`,
@@ -65,6 +64,27 @@ export function generateFractionsQuestion(
           `${whole} : ${d} = ?`,
         ],
         explanation: `1/${d} от ${whole} = ${whole} : ${d} = ${whole / d}.`,
+        method: `Чтобы найти 1/${d} от числа, раздели это число на ${d}. Проверь: доля × ${d} снова даёт целое.`,
+      };
+    },
+    () => {
+      const d = [2, 3, 4, 5][random(0, 3)];
+      const n = d === 2 ? 1 : random(2, d - 1);
+      const part = random(6, 20);
+      const whole = part * d;
+      const value = part * n;
+      return {
+        templateId: 'n_parts_plain',
+        text: `Найди ${n}/${d} от ${whole}.`,
+        answer: value,
+        hint: `Сначала одну долю, потом возьми таких долей ${n}.`,
+        hints: [
+          `Одна доля: ${whole} : ${d}.`,
+          `Теперь умножь эту долю на ${n}.`,
+        ],
+        explanation: `${whole} : ${d} = ${part}. ${part} × ${n} = ${value}.`,
+        alternativeSolutions: [`Можно ${whole} × ${n} : ${d} = ${value}.`],
+        method: `Доля от числа: раздели целое на знаменатель, затем умножь на числитель. Проверь обратным действием.`,
       };
     },
   ];
@@ -87,6 +107,25 @@ export function generateFractionsQuestion(
         ],
         explanation: `${whole} : ${d} = ${part} — одна доля. ${part} × ${n} = ${value}.`,
         alternativeSolutions: [`Можно ${whole} × ${n} : ${d} = ${value}.`],
+      };
+    },
+    () => {
+      const d = [2, 4, 5, 8][random(0, 3)];
+      const n = random(1, d - 1);
+      const part = random(10, 25);
+      const whole = part * d;
+      const value = part * n;
+      return {
+        templateId: 'fabric_share',
+        text: `Кусок ткани ${whole} м. От него отрезали ${n}/${d}. Сколько метров отрезали?`,
+        answer: value,
+        hint: `Ищем долю от длины ткани.`,
+        hints: [
+          `Сначала ${whole} : ${d} — длина одной доли.`,
+          `Затем умножь на ${n}.`,
+        ],
+        explanation: `${whole} : ${d} = ${part} м — одна доля. ${part} × ${n} = ${value} м.`,
+        method: `Именованная величина: сначала доля единицы (м), потом нужное число долей.`,
       };
     },
   ];
